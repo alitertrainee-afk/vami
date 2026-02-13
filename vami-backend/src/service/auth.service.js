@@ -5,7 +5,7 @@
     findUserByEmailOrUsername,
     createUser,
     findUserById,
-    } from "../repositories/user.repository.js";
+    } from "../repository/user.repository.js";
 
     export const registerUserService = async ({ username, email, password }) => {
     if ([username, email, password].some((field) => field?.trim() === "")) {

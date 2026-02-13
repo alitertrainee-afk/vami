@@ -4,7 +4,7 @@ import {
   findOneOnOneChat,
   createOneOnOneChat,
   findUserChats,
-} from "../repositories/conversation.repository.js";
+} from "../repository/conversation.repository.js";
 
 export const accessChatService = async ({ userId, currentUserId }) => {
   if (!userId) {

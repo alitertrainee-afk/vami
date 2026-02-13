@@ -4,7 +4,7 @@ import { sendResponse } from "../utils/responseHandler.js";
 import {
   registerUserService,
   loginUserService,
-} from "../services/auth.service.js";
+} from "../service/auth.service.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const user = await registerUserService(req.body);

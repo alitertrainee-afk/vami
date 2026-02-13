@@ -21,4 +21,4 @@ const errorHandler = (err, req, res, next) => {
   return sendResponse(res, error.statusCode, error.message, response);
 };
 
-export { errorHandler };
+export default errorHandler;

@@ -4,7 +4,7 @@ import {
   findMessagesByConversationId,
   createMessage,
   updateLatestMessage,
-} from "../repositories/message.repository.js";
+} from "../repository/message.repository.js";
 
 export const getAllMessagesService = async (chatId) => {
   if (!chatId) {
@@ -28,12 +28,4 @@ export const sendMessageService = async ({ senderId, chatId, content }) => {
   await updateLatestMessage(chatId, message);
 
   return message;
-};
-
-export const updateUserPresenceService = async ({ userId, isOnline }) => {
-  if (!userId) {
-    throw new ApiError(400, "UserId is required");
-  }
-
-  return updateUserPresence({ userId, isOnline });
 };

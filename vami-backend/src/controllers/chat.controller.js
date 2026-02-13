@@ -4,7 +4,7 @@ import { sendResponse } from "../utils/responseHandler.js";
 import {
   accessChatService,
   fetchChatsService,
-} from "../services/chat.service.js";
+} from "../service/chat.service.js";
 
 export const accessChat = asyncHandler(async (req, res) => {
   const chat = await accessChatService({

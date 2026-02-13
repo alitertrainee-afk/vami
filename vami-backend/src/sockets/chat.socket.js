@@ -1,5 +1,5 @@
 // local imports
-import { sendMessageService } from "../services/message.service.js";
+import { sendMessageService } from "../service/message.service.js";
 import { updateUserPresenceService } from "../service/user.service.js";
 
 const chatSocket = (io, socket) => {
