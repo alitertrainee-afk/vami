@@ -7,8 +7,8 @@ import { useAuthStore } from "../../store/auth.store.js";
 import { useChatStore } from "../../store/chat.store.js";
 
 // Child Components (We will build these next)
-import ChatArea from "./ChatArea.vue";
-import ChatSidebar from "./ChatSidebar.vue";
+import ChatArea from "../../components/chat/ChatArea.vue";
+import ChatSidebar from "../../components/chat/ChatSidebar.vue";
 
 const authStore = useAuthStore();
 const chatStore = useChatStore();

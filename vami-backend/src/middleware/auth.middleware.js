@@ -20,16 +20,16 @@ export const protect = async (req, res, next) => {
       // get user from the token and attach to req object
       req.user = await findUserById(decoded?.id);
 
-      next();
+      return next();
     } catch (error) {
       console.error(error);
-      sendResponse(res, 401, "Not authorized, token failed", {
+      return sendResponse(res, 401, "Not authorized, token failed", {
         error: error.message,
       });
     }
   }
 
   if (!token) {
-    sendResponse(res, 401, "Not authorized, no token");
+    return sendResponse(res, 401, "Not authorized, no token");
   }
 };

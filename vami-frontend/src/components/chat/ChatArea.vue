@@ -1,4 +1,4 @@
-<script setup>
+<!-- <script setup>
 // libs imports
 import { ref, watch, nextTick, computed } from "vue";
 
@@ -131,5 +131,73 @@ const isMe = (senderId) => {
         </button>
       </form>
     </div>
+  </div>
+</template> -->
+
+<script setup>
+import { ref, watch, nextTick } from "vue";
+import { useChatStore } from "../../store/chat.store.js";
+import { useAuthStore } from "../../store/auth.store.js";
+import MessageBubble from "./MessageBubble.vue";
+import MessageComposer from "./MessageComposer.vue";
+
+const chatStore = useChatStore();
+const authStore = useAuthStore();
+const messagesContainer = ref(null);
+
+const scrollToBottom = async () => {
+  await nextTick();
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+  }
+};
+
+watch(
+  [() => chatStore.messages.length, () => chatStore.activeChat],
+  scrollToBottom,
+);
+
+const handleSend = (text) => {
+  chatStore.sendMessage(text);
+};
+
+const isMe = (senderId) => {
+  const id = typeof senderId === "object" ? senderId?._id : senderId;
+  return id === authStore.user?._id;
+};
+</script>
+
+<template>
+  <div class="flex flex-col h-full bg-gray-50">
+    <div class="px-6 py-4 bg-white border-b border-gray-200 shadow-sm z-10">
+      <h3 class="text-lg font-bold text-gray-800">
+        {{
+          chatStore.activeChat.isGroupChat
+            ? chatStore.activeChat.chatName
+            : "Conversation"
+        }}
+      </h3>
+    </div>
+
+    <div
+      ref="messagesContainer"
+      class="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth"
+    >
+      <div v-if="chatStore.isLoadingMessages" class="flex justify-center p-4">
+        <span class="animate-pulse text-indigo-500 font-semibold"
+          >Loading messages...</span
+        >
+      </div>
+      {{ console.log("Hello", chatStore.messages, authStore.user?._id) }}
+      <MessageBubble
+        v-for="msg in chatStore.messages"
+        :key="msg?._id"
+        :content="msg?.content"
+        :timestamp="msg?.createdAt"
+        :is-me="isMe(msg?.sender?._id)"
+      />
+    </div>
+
+    <MessageComposer @send="handleSend" />
   </div>
 </template>

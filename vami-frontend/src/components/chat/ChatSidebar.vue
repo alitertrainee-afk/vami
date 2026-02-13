@@ -1,7 +1,8 @@
-<script setup>
+<!-- <script setup>
 // local imports
 import { useChatStore } from "../../store/chat.store.js";
 import { useAuthStore } from "../../store/auth.store.js";
+import UserSearch from "./UserSearch.vue";
 
 const chatStore = useChatStore();
 const authStore = useAuthStore();
@@ -24,6 +25,7 @@ const getChatDetails = (chat) => {
 };
 
 const selectChat = (chat) => {
+  if(chatStore.activeChat?._id === chat?._id) return; 
   chatStore.setActiveChat(chat);
 };
 </script>
@@ -43,11 +45,7 @@ const selectChat = (chat) => {
     </div>
 
     <div class="p-3">
-      <input
-        type="text"
-        placeholder="Search chats..."
-        class="w-full px-4 py-2 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-sm"
-      />
+      <UserSearch />
     </div>
 
     <div class="flex-1 overflow-y-auto">
@@ -113,6 +111,68 @@ const selectChat = (chat) => {
           </div>
         </li>
       </ul>
+    </div>
+  </div>
+</template> -->
+<script setup>
+import { useChatStore } from "../../store/chat.store.js";
+import { useAuthStore } from "../../store/auth.store.js";
+import UserSearch from "./UserSearch.vue";
+import ChatListItem from "./ChatListItem.vue"; // Import the Molecule
+
+const chatStore = useChatStore();
+const authStore = useAuthStore();
+
+const selectChat = (chat) => {
+  if (chatStore.activeChat?._id === chat?._id) return;
+  chatStore.setActiveChat(chat);
+};
+</script>
+
+<template>
+  <div class="flex flex-col h-full">
+    <div
+      class="p-4 border-b border-gray-200 flex justify-between items-center bg-white shadow-sm z-10"
+    >
+      <h2 class="text-xl font-bold text-gray-800 tracking-tight">Chats</h2>
+      <button
+        @click="authStore.logout()"
+        class="text-sm text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded transition hover:bg-red-50"
+      >
+        Logout
+      </button>
+    </div>
+
+    <div class="p-3 bg-white">
+      <UserSearch />
+    </div>
+
+    <div class="flex-1 overflow-y-auto bg-white">
+      <div
+        v-if="chatStore.isLoadingChats"
+        class="p-4 text-center text-gray-400 text-sm"
+      >
+        <span class="animate-pulse">Loading conversations...</span>
+      </div>
+
+      <ul v-else class="divide-y divide-gray-100">
+        <ChatListItem
+          v-for="chat in chatStore.conversations"
+          :key="chat?._id"
+          :chat="chat"
+          :is-active="chatStore?.activeChat?._id === chat?._id"
+          :current-user-id="authStore.user?._id"
+          :online-users="chatStore?.onlineUsers"
+          @select="selectChat"
+        />
+      </ul>
+
+      <div
+        v-if="!chatStore.isLoadingChats && chatStore.conversations.length === 0"
+        class="p-8 text-center text-gray-400 text-sm"
+      >
+        No chats yet. Search for a user above to start messaging!
+      </div>
     </div>
   </div>
 </template>

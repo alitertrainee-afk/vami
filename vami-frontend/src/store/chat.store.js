@@ -21,7 +21,7 @@ export const useChatStore = defineStore("chat", {
       this.isLoadingChats = true;
       try {
         const response = await ChatService.fetchConversations();
-        this.conversations = response.data;
+        this.conversations = response.data.data || [];
       } catch (error) {
         console.error("Failed to load conversations:", error);
       } finally {
@@ -39,7 +39,7 @@ export const useChatStore = defineStore("chat", {
       this.isLoadingMessages = true;
       try {
         const response = await ChatService.fetchMessages(chat._id);
-        this.messages = response.data;
+        this.messages = response.data.data || [];
       } catch (error) {
         console.error("Failed to load messages:", error);
       } finally {
@@ -94,7 +94,6 @@ export const useChatStore = defineStore("chat", {
       // For strict phase 1, we rely on the server broadcasting it back via 'receive_message'.
     },
 
-
     updateSidebarLatestMessage(chatId, message) {
       const chatIndex = this.conversations.findIndex((c) => c._id === chatId);
       if (chatIndex !== -1) {
@@ -103,6 +102,25 @@ export const useChatStore = defineStore("chat", {
         chat.latestMessage = message;
         this.conversations.splice(chatIndex, 1);
         this.conversations.unshift(chat);
+      }
+    },
+
+    // Add this inside the actions {} block of your chat.store.js
+    async setActiveChatFromUser(userId) {
+      this.isLoadingMessages = true;
+      try {
+        // This hits the backend POST /chats endpoint we made earlier
+        const response = await ChatService.accessChat(userId);
+        const chat = response.data.data;
+
+        // Now pass the resulting chat object to our existing setActiveChat logic
+        await this.setActiveChat(chat);
+        return chat;
+      } catch (error) {
+        console.error("Failed to create/access chat:", error);
+        throw error;
+      } finally {
+        this.isLoadingMessages = false;
       }
     },
   },

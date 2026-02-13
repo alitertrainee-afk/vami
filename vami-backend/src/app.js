@@ -10,6 +10,7 @@ import errorHandler from "./middleware/error.middleware.js";
 
 // routes imports
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import { apiLimiter } from "./middleware/ratelimit.middleware.js";
@@ -36,6 +37,7 @@ connectDB();
 
 // routes use
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/chats", chatRoutes);
 app.use("/api/v1/messages", messageRoutes);
 
