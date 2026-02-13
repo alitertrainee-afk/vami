@@ -2,7 +2,7 @@
 import { defineStore } from "pinia";
 
 // local imports
-import { AuthService } from "@/services/auth.service.js";
+import { AuthService } from "../services/auth.service.js";
 import {
   getLocalStorageItem,
   removeLocalStorageItem,
@@ -30,7 +30,7 @@ export const useAuthStore = defineStore("auth", {
         const response = await AuthService.login(credentials);
 
         // Destructure based on your backend ApiResponse format
-        const { user, token } = response.data;
+        const { user, token } = response.data?.data;
 
         this.user = user;
         this.token = token;
