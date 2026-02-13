@@ -58,7 +58,7 @@
         throw new ApiError(401, "Invalid credentials");
     }
 
-    const token = generateToken({ id: user._id });
+    const token = generateToken({ id: user._id }, "7d");
 
     const safeUser = await findUserById(user._id);
 
