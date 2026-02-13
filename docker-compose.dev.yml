@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  # 1. MongoDB Service
+  mongo:
+    image: mongo:6.0
+    container_name: vami_mongo_local
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data_local:/data/db
+
+  # 2. Redis Service
+  redis:
+    image: redis:alpine
+    container_name: vami_redis_local
+    ports:
+      - "6379:6379"
+
+volumes:
+  mongo_data_local:

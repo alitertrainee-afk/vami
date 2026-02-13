@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  # The Scalability Layer
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  # The Database
+  mongo:
+    image: mongo
+    volumes:
+      - mongo-data:/data/db
+
+  # The Backend (Scaled to 2 instances)
+  api:
+    build: ./vami-backend
+    deploy:
+      replicas: 2
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MONGO_URI=mongodb://mongo:27017/vami
+    depends_on:
+      - redis
+      - mongo
+
+  # The Load Balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
+
+volumes:
+  mongo-data:
