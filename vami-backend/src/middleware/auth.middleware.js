@@ -1,5 +1,7 @@
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+// local imports
+import { verifyJWTToken } from "../utils/jwt.utils.js";
+import { findUserById } from "../repository/user.repository.js";
+import { sendResponse } from "../utils/responseHandler.js";
 
 export const protect = async (req, res, next) => {
   let token;
@@ -9,20 +11,25 @@ export const protect = async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     try {
+      // get bearer token from header
       token = req.headers.authorization.split(" ")[1];
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // decode the bearer token
+      const decoded = verifyJWTToken(token);
 
-      req.user = await User.findById(decoded.id).select("-password");
+      // get user from the token and attach to req object
+      req.user = await findUserById(decoded?.id);
 
       next();
     } catch (error) {
       console.error(error);
-      res.status(401).json({ message: "Not authorized, token failed" });
+      sendResponse(res, 401, "Not authorized, token failed", {
+        error: error.message,
+      });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: "Not authorized, no token" });
+    sendResponse(res, 401, "Not authorized, no token");
   }
 };
