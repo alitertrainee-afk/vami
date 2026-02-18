@@ -7,8 +7,9 @@ import { useAuthStore } from "../../store/auth.store.js";
 import { useChatStore } from "../../store/chat.store.js";
 
 // Child Components (We will build these next)
-import ChatArea from "../../components/chat/ChatArea.vue";
-import ChatSidebar from "../../components/chat/ChatSidebar.vue";
+// import ChatArea from "../../components/chat/ChatArea.vue";
+import ChatSidebar from "../../components/chat/LeftSidebar/ChatSidebar.vue";
+import ChatWindow from "../../components/chat/ChatWindow.vue";
 
 const authStore = useAuthStore();
 const chatStore = useChatStore();
@@ -25,7 +26,6 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  // CRITICAL: Prevent memory leaks and zombie connections
   chatStore.disconnectSocket();
 });
 </script>
@@ -39,7 +39,7 @@ onBeforeUnmount(() => {
     </aside>
 
     <main class="flex-1 flex flex-col min-w-0 bg-gray-50">
-      <ChatArea v-if="chatStore.activeChat" />
+      <ChatWindow v-if="chatStore.activeChat" />
 
       <div
         v-else

@@ -27,7 +27,7 @@ const messageSchema = new mongoose.Schema(
 );
 
 // Compound index for fast history lookup
-messageSchema.index({ conversationId: 1, createdAt: 1 });
+messageSchema.index({ conversationId: 1, createdAt: -1 });
 
 const Message = mongoose.model("Message", messageSchema);
 export default Message;

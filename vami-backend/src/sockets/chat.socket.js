@@ -36,6 +36,7 @@ const chatSocket = (io, socket) => {
   });
 
   socket.on("send_message", async (data) => {
+    console.log("🚀 ~ chatSocket ~ data:", data)
     const { roomId, content } = data || {};
 
     if (!roomId || !content) {
@@ -50,6 +51,7 @@ const chatSocket = (io, socket) => {
         chatId: roomId,
         content,
       });
+      console.log("🚀 ~ chatSocket ~ message:", message)
 
       // Emit message to room
       io.to(roomId).emit("receive_message", message);

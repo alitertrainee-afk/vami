@@ -1,17 +1,24 @@
+// libs import
 import { defineStore } from "pinia";
+
+// local imports
 import { ChatService } from "@/services/chat.service";
 import { socketClient } from "@/core/sockets/socket.client";
 
 export const useChatStore = defineStore("chat", {
-  state: () => ({
-    conversations: [], // Array of chats for the sidebar
-    activeChat: null, // The currently opened chat object
-    messages: [], // Array of messages for the active chat
+  state: () => {
+    return {
+    conversations: [],
+    activeChat: null,
+    messages: [],
+    pagination: null,
+    currentPage: 1,
     isLoadingChats: false,
     isLoadingMessages: false,
-    onlineUsers: new Set(), // Set of user IDs currently online
-    typingUsers: new Set(), // Set of user IDs currently typing in the active chat
-  }),
+    onlineUsers: new Set(),
+    typingUsers: new Set(),
+  };
+  },
 
   actions: {
     // --------------------------------------------------
@@ -31,17 +38,52 @@ export const useChatStore = defineStore("chat", {
 
     async setActiveChat(chat) {
       this.activeChat = chat;
-      this.messages = []; // Clear current messages immediately for UI perceived performance
+      this.messages = [];
+      this.currentPage = 1;
+      this.pagination = null;
 
-      // Join the socket room
       socketClient.emit("join_room", chat?._id);
 
       this.isLoadingMessages = true;
       try {
-        const response = await ChatService.fetchMessages(chat._id);
-        this.messages = response.data.data || [];
+        const response = await ChatService.fetchMessages(chat._id, {
+          page: 1,
+          limit: 20,
+        });
+
+        const { messages, pagination } = response.data.data;
+
+        this.messages = messages;
+        this.pagination = pagination;
       } catch (error) {
         console.error("Failed to load messages:", error);
+      } finally {
+        this.isLoadingMessages = false;
+      }
+    },
+
+    async loadMoreMessages() {
+      if (!this.pagination?.hasNext || this.isLoadingMessages) return;
+
+      this.isLoadingMessages = true;
+
+      try {
+        const nextPage = this.currentPage + 1;
+
+        const response = await ChatService.fetchMessages(this.activeChat._id, {
+          page: nextPage,
+          limit: 20,
+        });
+
+        const { messages, pagination } = response.data.data;
+
+        // Prepend older messages
+        this.messages = [...messages, ...this.messages];
+
+        this.currentPage = nextPage;
+        this.pagination = pagination;
+      } catch (error) {
+        console.error("Failed to load more messages:", error);
       } finally {
         this.isLoadingMessages = false;
       }
@@ -56,12 +98,12 @@ export const useChatStore = defineStore("chat", {
       // Listen for incoming messages globally
       socketClient.on("receive_message", (message) => {
         // 1. If the message belongs to the currently open chat, append it
-        if (this.activeChat && this.activeChat._id === message.conversationId) {
+        if (this.activeChat && this.activeChat?._id === message.conversationId) {
           this.messages.push(message);
         }
 
         // 2. Update the sidebar's "latestMessage" so it bubbles to the top
-        this.updateSidebarLatestMessage(message.conversationId, message);
+        this.updateSidebarLatestMessage(message?.conversationId, message);                                                                                    
       });
 
       // Listen for presence
@@ -82,16 +124,12 @@ export const useChatStore = defineStore("chat", {
       if (!this.activeChat || !content.trim()) return;
 
       const payload = {
-        roomId: this.activeChat._id,
+        roomId: this.activeChat?._id,
         content: content.trim(),
       };
 
       // Emit to server
       socketClient.emit("send_message", payload);
-
-      // Note: In a fully Optimistic UI, we would push a temporary message object here
-      // with a 'pending' status, and resolve it when the server acknowledges.
-      // For strict phase 1, we rely on the server broadcasting it back via 'receive_message'.
     },
 
     updateSidebarLatestMessage(chatId, message) {

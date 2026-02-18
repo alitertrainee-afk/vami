@@ -19,7 +19,7 @@ class SocketClient {
     });
 
     this.socket.on("connect", () => {
-      console.log("[Socket] Connected strictly:", this.socket.id);
+      console.log("[Socket] Connection ID:", this.socket.id);
     });
 
     this.socket.on("connect_error", (error) => {
@@ -31,13 +31,11 @@ class SocketClient {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
-      console.log("[Socket] Disconnected strictly");
+      console.log("[Socket] Disconnected");
     }
   }
 
-  /**
-   * Registers an event listener safely.
-   */
+
   on(event, callback) {
     if (!this.socket) return;
     // Remove existing listener to prevent duplicate triggers (memory leak prevention)
@@ -45,9 +43,6 @@ class SocketClient {
     this.socket.on(event, callback);
   }
 
-  /**
-   * Emits an event to the server.
-   */
   emit(event, data) {
     if (!this.socket) {
       console.warn("[Socket] Attempted to emit without connection");

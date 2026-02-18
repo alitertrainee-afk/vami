@@ -5,8 +5,6 @@ import {
 } from "../repository/user.repository.js";
 
 export const searchUsersService = async ({ search, currentUserId }) => {
-  console.log("🚀 ~ searchUsersService ~ currentUserId:", currentUserId)
-  console.log("🚀 ~ searchUsersService ~ search:", search)
   if (!currentUserId) {
     throw new ApiError(401, "Unauthorized");
   }

@@ -1,6 +1,9 @@
 <script setup>
+// libs import 
 import { computed } from "vue";
-import Avatar from "../ui/atoms/Avatar.vue";
+
+// local imports
+import Avatar from "../../ui/atoms/Avatar.vue";
 
 const props = defineProps({
   chat: { type: Object, required: true },
@@ -11,15 +14,16 @@ const props = defineProps({
 
 const emit = defineEmits(["select"]);
 
-// Encapsulated Logic: Figure out what to display based on chat type
+// display logic for chat name, avatar and online status
 const details = computed(() => {
-  if (props.chat.isGroupChat) {
+  if (props.chat?.isGroupChat) {
     return { name: props.chat.chatName, avatar: null, isOnline: false };
   }
 
-  const otherUser = props.chat.participants.find(
-    (p) => p._id !== props.currentUserId,
+  const otherUser = props.chat?.participants.find(
+    (p) => p?._id !== props.currentUserId,
   );
+
   return {
     name: otherUser?.username || "Unknown User",
     avatar: otherUser?.profile?.avatar,
@@ -28,12 +32,13 @@ const details = computed(() => {
 });
 
 const formattedTime = computed(() => {
-  if (!props.chat.latestMessage) return "";
-  return new Date(props.chat.latestMessage.createdAt).toLocaleTimeString([], {
+  if (!props.chat?.latestMessage) return "";
+  return new Date(props.chat?.latestMessage?.createdAt).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
   });
 });
+
 </script>
 
 <template>

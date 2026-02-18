@@ -10,7 +10,7 @@ export const ChatService = {
     return await axiosInstance.post("/chats", { userId });
   },
 
-  async fetchMessages(chatId) {
-    return await axiosInstance.get(`/messages/${chatId}`);
+  async fetchMessages(chatId, params = {}) {
+    return await axiosInstance.get(`/messages/${chatId}`, { params });
   },
 };

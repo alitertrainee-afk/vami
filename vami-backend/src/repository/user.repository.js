@@ -13,7 +13,6 @@ export const searchUsers = async ({ keyword, excludeUserId, limit = 10 }) => {
         ],
       }
     : {};
-  console.log("🚀 ~ searchUsers ~ query:", query)
 
   return await User.find(query)
     .find({ _id: { $ne: excludeUserId } })

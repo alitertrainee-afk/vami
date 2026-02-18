@@ -7,9 +7,9 @@ import {
 } from "../service/message.service.js";
 
 export const allMessages = asyncHandler(async (req, res) => {
-  const messages = await getAllMessagesService(req.params.chatId);
+  const data = await getAllMessagesService(req.params.chatId, req.query);
 
-  return sendResponse(res, 200, "Messages fetched successfully", messages);
+  return sendResponse(res, 200, "Messages fetched successfully", data);
 });
 
 export const sendMessage = asyncHandler(async (req, res) => {
