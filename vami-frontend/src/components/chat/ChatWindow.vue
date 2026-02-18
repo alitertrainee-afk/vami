@@ -6,9 +6,10 @@ import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import { useChatStore } from "../../store/chat.store.js";
 import { useAuthStore } from "../../store/auth.store.js";
 
-// 
+//
 import MessageBubble from "./MessageBubble.vue";
 import MessageComposer from "./MessageComposer.vue";
+import { ArrowLeft01Icon, MoreVerticalSquare01Icon } from "hugeicons-vue";
 
 const chatStore = useChatStore();
 const authStore = useAuthStore();
@@ -111,21 +112,54 @@ const isMe = (senderId) => {
 
 <template>
   <div class="flex flex-col h-full bg-gray-50">
-    <div class="px-6 py-4 bg-white border-b border-gray-200 shadow-sm z-10">
-      <h3 class="text-lg font-bold text-gray-800">
-        {{
-          chatStore.activeChat.isGroupChat
-            ? chatStore.activeChat.chatName
-            : "Conversation"
-        }}
-      </h3>
+    <div
+      class="px-4 py-3 bg-white border-b border-gray-200 shadow-sm z-10 flex justify-between items-center"
+    >
+      <div class="flex items-center gap-3">
+        <button
+          @click="$emit('back')"
+          class="lg:hidden p-1 -ml-2 rounded-full hover:bg-gray-100 text-gray-600"
+        >
+          <ArrowLeft01Icon :size="24" />
+        </button>
+
+        <div
+          class="flex items-center gap-3 cursor-pointer"
+          @click="$emit('toggle-info')"
+        >
+          <div
+            class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold"
+          >
+            {{ chatStore.activeChat.chatName.charAt(0) }}
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-gray-800 leading-tight">
+              {{
+                chatStore.activeChat.isGroupChat
+                  ? chatStore.activeChat.chatName
+                  : "Conversation"
+              }}
+            </h3>
+            <p class="text-xs text-green-500 font-medium" v-if="true">Online</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button
+          @click="$emit('toggle-info')"
+          class="text-gray-500 hover:text-indigo-600 transition-colors"
+        >
+          <MoreVerticalSquare01Icon :size="20" />
+        </button>
+      </div>
     </div>
 
     <div ref="messagesContainer" class="flex-1 overflow-y-auto p-6 space-y-4">
       <div v-if="chatStore.isLoadingMessages" class="flex justify-center p-4">
         <span class="animate-pulse text-indigo-500 font-semibold">
           Loading messages...
-          </span>
+        </span>
       </div>
       <MessageBubble
         v-for="msg in chatStore.messages"

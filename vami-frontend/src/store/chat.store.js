@@ -8,16 +8,16 @@ import { socketClient } from "@/core/sockets/socket.client";
 export const useChatStore = defineStore("chat", {
   state: () => {
     return {
-    conversations: [],
-    activeChat: null,
-    messages: [],
-    pagination: null,
-    currentPage: 1,
-    isLoadingChats: false,
-    isLoadingMessages: false,
-    onlineUsers: new Set(),
-    typingUsers: new Set(),
-  };
+      conversations: [],
+      activeChat: null,
+      messages: [],
+      pagination: null,
+      currentPage: 1,
+      isLoadingChats: false,
+      isLoadingMessages: false,
+      onlineUsers: new Set(),
+      typingUsers: new Set(),
+    };
   },
 
   actions: {
@@ -46,6 +46,7 @@ export const useChatStore = defineStore("chat", {
 
       this.isLoadingMessages = true;
       try {
+        if (!chat) return;
         const response = await ChatService.fetchMessages(chat._id, {
           page: 1,
           limit: 20,
@@ -98,12 +99,15 @@ export const useChatStore = defineStore("chat", {
       // Listen for incoming messages globally
       socketClient.on("receive_message", (message) => {
         // 1. If the message belongs to the currently open chat, append it
-        if (this.activeChat && this.activeChat?._id === message.conversationId) {
+        if (
+          this.activeChat &&
+          this.activeChat?._id === message.conversationId
+        ) {
           this.messages.push(message);
         }
 
         // 2. Update the sidebar's "latestMessage" so it bubbles to the top
-        this.updateSidebarLatestMessage(message?.conversationId, message);                                                                                    
+        this.updateSidebarLatestMessage(message?.conversationId, message);
       });
 
       // Listen for presence
