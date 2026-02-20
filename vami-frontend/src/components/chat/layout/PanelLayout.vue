@@ -1,55 +1,33 @@
 <script setup>
-import { ArrowLeft01Icon, ArrowLeft02Icon } from "hugeicons-vue";
-import { useSidebar } from "../../../hooks/useSidebar.js";
+import { ArrowLeft02Icon } from "hugeicons-vue";
 import Button from "../../ui/atoms/Button.vue";
 
 const props = defineProps({
-  title: {
-    type: String,
-    required: true,
-  },
-  showBackButton: {
-    type: Boolean,
-    default: true,
-  },
-  // Configurable Classes for dynamic theming (Light/Dark mode ready)
-  headerBgClass: {
-    type: String,
-    default: "bg-white",
-  },
-  headerTextClass: {
-    type: String,
-    default: "text-black",
-  },
-  headerHeightClass: {
-    type: String,
-    default: "h-[60px]",
-  },
-  mainBgClass: {
-    type: String,
-    default: "bg-white",
-  },
+  title: { type: String, required: true },
+  showBackButton: { type: Boolean, default: true },
+  headerBgClass: { type: String, default: "bg-white" },
+  headerTextClass: { type: String, default: "text-black" },
+  mainBgClass: { type: String, default: "bg-white" },
 });
 
-const { goBack } = useSidebar();
+const emit = defineEmits(["back"]);
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full relative" :class="mainBgClass">
     <header
       :class="[
-        'flex items-center px-4 shrink-0 transition-colors',
-        headerHeightClass,
+        'flex items-center px-4 shrink-0 transition-colors h-[60px]',
         headerBgClass,
         headerTextClass,
       ]"
     >
       <div class="flex items-center gap-6 w-full mt-auto mb-3">
         <Button
-        :variant="'ghost'"
-        :icon-only="true"
           v-if="showBackButton"
-          @click="goBack"
+          variant="ghost"
+          :icon-only="true"
+          @click="emit('back')"
           class="hover:bg-gray-200 p-1.5 -ml-1.5 rounded-full transition-colors focus:outline-none"
         >
           <ArrowLeft02Icon :size="24" />

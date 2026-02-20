@@ -1,17 +1,16 @@
 <script setup>
-import { ref, computed } from "vue";
-import Button from "../../ui/atoms/Button.vue";
-import { FilterHorizontalIcon } from "hugeicons-vue";
+// libs import
+import { ref } from "vue";
 
+// UI Imports - [Atoms]
+import Button from "../../ui/atoms/Button.vue";
+
+// state
 const activeFilter = ref("all");
 
-// You can move this to a separate config file if needed
 const filters = [
   { key: "all", label: "All" },
   { key: "unread", label: "Unread", count: 181 },
-  { key: "favourites", label: "Favourites" },
-  { key: "favourites", label: "Favourites" },
-  { key: "favourites", label: "Favourites" },
   { key: "favourites", label: "Favourites" },
 ];
 

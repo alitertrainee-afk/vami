@@ -18,7 +18,7 @@ const props = defineProps({
   },
   width: {
     type: String,
-    default: "w-56",
+    default: "w-[220px]", // WhatsApp menus are usually a bit wider
   },
 });
 
@@ -45,7 +45,7 @@ const handleAction = (item) => {
 
 <template>
   <div class="relative inline-block text-left" ref="menuRef">
-    <div @click.stop="toggle">
+    <div @click.stop="toggle" class="cursor-pointer">
       <slot name="trigger" :isOpen="isOpen" />
     </div>
 
@@ -60,42 +60,37 @@ const handleAction = (item) => {
       <div
         v-if="isOpen"
         :class="[
-          'absolute z-50 mt-2 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none',
+          'absolute z-50 mt-1 origin-top-right rounded-xl bg-white shadow-[0_2px_15px_rgba(11,20,26,.1)] ring-1 ring-black/5 focus:outline-none',
           width,
           position === 'bottom-right' ? 'right-0' : 'left-0',
         ]"
         role="menu"
-        aria-orientation="vertical"
-        aria-labelledby="menu-button"
       >
-        <div class="py-1 divide-y divide-gray-100">
+        <div class="py-2">
           <template v-for="(item, index) in items" :key="index">
             <div
               v-if="item.separator"
-              class="h-px bg-gray-100 my-1"
+              class="h-[1px] bg-[#e9edef] my-1.5"
               role="separator"
             ></div>
 
             <button
               v-else
-              @click="handleAction(item)"
-              class="group flex w-full items-center px-4 py-2.5 text-sm transition-colors duration-150"
-              :class="[
-                item.danger
-                  ? 'text-red-600 hover:bg-red-50'
-                  : 'text-gray-700 hover:bg-gray-50',
-              ]"
+              @click.stop="handleAction(item)"
+              class="flex w-full items-center px-5 py-[10px] text-left hover:bg-[#f5f6f6] focus:bg-[#f5f6f6] outline-none"
+              :class="item.danger ? 'text-[#ea0038]' : 'text-[#3b4a54]'"
               role="menuitem"
             >
               <component
                 v-if="item.icon"
                 :is="item.icon"
                 :size="20"
-                class="mr-3 opacity-70 group-hover:opacity-100 transition-opacity"
-                :class="item.danger ? 'text-red-500' : 'text-gray-500'"
+                class="mr-4 shrink-0"
+                :class="item.danger ? 'text-[#ea0038]' : 'text-[#54656f]'"
               />
-
-              <span class="font-medium">{{ item.label }}</span>
+              <span class="text-[15px] font-normal truncate">{{
+                item.label
+              }}</span>
             </button>
           </template>
         </div>

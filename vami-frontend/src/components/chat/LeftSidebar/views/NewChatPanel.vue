@@ -1,17 +1,16 @@
 <script setup>
 import { ref } from "vue";
-import {
-  UserGroupIcon,
-  UserAdd01Icon,
-  UserMultipleIcon,
-  // Removed Search01Icon - the Molecule handles this now
-} from "hugeicons-vue";
+import { UserGroupIcon, UserAdd01Icon, UserMultipleIcon } from "hugeicons-vue";
 
 // Components
-import SidebarPanelLayout from "../../layout/SidebarPanelLayout.vue";
-import ActionListItem from "../../../ui/molecules/ActionListItem.vue";
-import ContactListItem from "../../../ui/molecules/ContactListItem.vue";
-import SearchInput from "../../../ui/molecules/SearchInput.vue"; // <-- Imported Molecule
+import PanelLayout from "../../layout/PanelLayout.vue";
+import BaseListItem from "../../../ui/molecules/BaseListItem.vue"; // <-- Imported unified molecule
+import SearchInput from "../../../ui/molecules/SearchInput.vue";
+
+// Hooks
+import { usePanelManager } from "../../../../hooks/usePanelManager.js";
+
+const { closePanel } = usePanelManager();
 
 const searchQuery = ref("");
 
@@ -20,7 +19,7 @@ const MENU_OPTIONS = [
     id: "new_group",
     label: "New group",
     icon: UserGroupIcon,
-    action: () => console.log("New Group"),
+    action: () => console.log("New Group"), // In the future: openPanel('left', NewGroupPanel)
   },
 ];
 
@@ -35,9 +34,9 @@ const CONTACTS = [
 </script>
 
 <template>
-  <SidebarPanelLayout title="New chat">
+  <PanelLayout title="New chat" @back="closePanel('left')">
     <template #subheader>
-      <div class="px-3 py-2 border-b border-white/5">
+      <div class="px-3 py-2 border-b border-gray-100">
         <SearchInput
           v-model="searchQuery"
           placeholder="Search users"
@@ -47,26 +46,30 @@ const CONTACTS = [
     </template>
 
     <div class="py-2">
-      <ActionListItem
+      <BaseListItem
         v-for="item in MENU_OPTIONS"
         :key="item.id"
-        :label="item.label"
+        :title="item.label"
         :icon="item.icon"
+        iconBgClass="bg-[#00a884]"
+        iconColorClass="text-white"
+        :showBorder="false"
         @click="item.action"
       />
     </div>
 
-    <div class="px-8 py-4 text-[#8696a0] text-[15px] font-normal mt-2">
-      Contacts on WhatsApp
+    <div class="px-8 py-2 text-[#8696a0] text-[15px] font-normal mt-2">
+      Contacts on Vami
     </div>
 
     <div class="flex flex-col pb-6">
-      <ContactListItem
+      <BaseListItem
         v-for="contact in CONTACTS"
         :key="contact.id"
-        :name="contact.name"
+        :title="contact.name"
         :subtitle="contact.subtitle"
-        :avatar="contact.avatar"
+        :avatarUrl="contact.avatar"
+        hoverBgClass="hover:bg-gray-50"
       />
 
       <div
@@ -75,11 +78,12 @@ const CONTACTS = [
         #
       </div>
 
-      <ContactListItem
-        name="Another User"
+      <BaseListItem
+        title="Another User"
         subtitle="Available"
-        avatar="https://i.pravatar.cc/150?u=another"
+        avatarUrl="https://i.pravatar.cc/150?u=another"
+        hoverBgClass="hover:bg-gray-50"
       />
     </div>
-  </SidebarPanelLayout>
+  </PanelLayout>
 </template>

@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iconify-json/tabler": "^1.2.26",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.5",
     "hugeicons-vue": "^0.0.1",
+    "iconify-icon": "^3.0.2",
     "install": "^0.13.0",
     "pinia": "^3.0.4",
     "socket.io-client": "^4.8.3",

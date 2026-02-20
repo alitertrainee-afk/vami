@@ -1,47 +1,68 @@
 <script setup>
-import { onMounted, onBeforeUnmount } from "vue";
+import { onMounted, onBeforeUnmount, computed } from "vue";
 import { useAuthStore } from "../../store/auth.store.js";
 import { useChatStore } from "../../store/chat.store.js";
 import { useChatUI } from "../../hooks/useChatUI.js";
 
+// Import the new PanelManager
+import { usePanelManager } from "../../hooks/usePanelManager.js";
+
 // Components
 import ChatLayout from "../../components/chat/layout/ChatLayout.vue";
-import ChatSidebar from "../../components/chat/LeftSidebar/ChatSidebar.vue";
+import PanelContainer from "../../components/chat/layout/PanelContainer.vue";
 import ChatWindow from "../../components/chat/ChatWindow.vue";
-// import SharedMediaPanel from "../../components/chat/RightSidebar/SharedMediaPanel.vue"; // Create this later
+
+// Views
+import MainChatList from "../../components/chat/LeftSidebar/views/MainChatList.vue";
 
 const authStore = useAuthStore();
 const chatStore = useChatStore();
 const chatUI = useChatUI();
+const { openPanel, panelStacks } = usePanelManager();
+
+// Automatically show the right sidebar if a panel is pushed to the right stack
+const isRightPanelOpen = computed(() => panelStacks.value.right.length > 0);
 
 onMounted(async () => {
   if (authStore.token) {
-    chatStore.initializeSocket(authStore.token);
+    chatStore.initializeSocket(authStore?.token);
   }
+
+  // Initialize the left sidebar with the MainChatList view
+  openPanel("left", MainChatList);
+
   await chatStore.loadConversations();
 });
 
 onBeforeUnmount(() => {
   chatStore.disconnectSocket();
 });
+
+const handleToggleInfo = () => {
+  if (isRightPanelOpen.value) {
+    panelStacks.value.right = [];
+  } else {
+    chatUI.toggleInfoPanel();
+  }
+};
 </script>
 
 <template>
   <ChatLayout
     :show-sidebar="chatUI.showSidebar.value"
     :show-chat="chatUI.showChatWindow.value"
-    :show-info="chatUI.isInfoPanelOpen.value"
+    :show-info="isRightPanelOpen || chatUI.isInfoPanelOpen.value"
     @close-chat="chatUI.closeActiveChat"
-    @close-info="chatUI.closeInfoPanel"
+    @close-info="panelStacks.right = []"
   >
     <template #sidebar>
-      <ChatSidebar />
+      <PanelContainer side="left" />
     </template>
 
     <template #chat>
       <ChatWindow
         v-if="chatStore.activeChat"
-        @toggle-info="chatUI.toggleInfoPanel"
+        @toggle-info="handleToggleInfo"
         @back="chatUI.closeActiveChat"
       />
 
@@ -72,10 +93,7 @@ onBeforeUnmount(() => {
     </template>
 
     <template #info>
-      <div class="p-8 text-center text-gray-500 mt-10">
-        <p>Shared Media & Info Panel</p>
-        <p class="text-xs mt-2 text-gray-400">(Coming Soon)</p>
-      </div>
+      <PanelContainer side="right" />
     </template>
   </ChatLayout>
 </template>

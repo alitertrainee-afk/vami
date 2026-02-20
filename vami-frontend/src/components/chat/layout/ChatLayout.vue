@@ -68,26 +68,6 @@ const emit = defineEmits(["close-chat", "close-info"]);
           v-if="showInfo"
           class="absolute inset-0 w-full h-full bg-white z-30"
         >
-          <div
-            class="h-16 flex items-center px-4 border-b border-gray-200 bg-white"
-          >
-            <button @click="$emit('close-info')" class="mr-3 text-gray-600">
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                ></path>
-              </svg>
-            </button>
-            <h3 class="font-semibold text-lg">Contact Info</h3>
-          </div>
           <slot name="info" />
         </div>
       </Transition>
