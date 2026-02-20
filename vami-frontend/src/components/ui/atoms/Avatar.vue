@@ -6,6 +6,7 @@ const props = defineProps({
   name: { type: String, required: true },
   isOnline: { type: Boolean, default: false },
   size: { type: String, default: "md" }, // sm, md, lg
+  fallbackIcon: { type: [Object, Function], default: null }, // <-- Dynamic fallback prop
 });
 
 const initials = computed(() => {
@@ -14,10 +15,17 @@ const initials = computed(() => {
 });
 
 const sizeClasses = {
-  sm: "w-8 h-8 text-xs",
-  md: "w-12 h-12 text-lg",
-  lg: "w-16 h-16 text-2xl",
+  sm: "w-8 h-8",
+  md: "w-12 h-12",
+  lg: "w-16 h-16",
 };
+
+// Scale the hugeicons based on the avatar size wrapper
+const iconSize = computed(() => {
+  if (props.size === "sm") return 16;
+  if (props.size === "lg") return 32;
+  return 24; // md
+});
 </script>
 
 <template>
@@ -35,6 +43,15 @@ const sizeClasses = {
         :alt="name"
         class="w-full h-full object-cover"
       />
+
+      <component
+        v-else-if="fallbackIcon"
+        :is="fallbackIcon"
+        :size="iconSize"
+        variant="solid"
+        class="opacity-70"
+      />
+
       <span v-else>{{ initials }}</span>
     </div>
 

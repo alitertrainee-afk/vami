@@ -10,7 +10,7 @@ import { usePanelManager } from "../../hooks/usePanelManager.js";
 // Components
 import ChatLayout from "../../components/chat/layout/ChatLayout.vue";
 import PanelContainer from "../../components/chat/layout/PanelContainer.vue";
-import ChatWindow from "../../components/chat/ChatWindow.vue";
+import ChatWindow from "../../components/chat/ChatWindow/ChatWindow.vue";
 
 // Views
 import MainChatList from "../../components/chat/LeftSidebar/views/MainChatList.vue";
