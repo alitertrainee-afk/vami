@@ -24,7 +24,7 @@ const emit = defineEmits(["close-chat", "close-info"]);
       </main>
 
       <aside
-        class="bg-white border-l border-gray-200 transition-all duration-300 ease-in-out overflow-hidden"
+        class="bg-white border-l border-gray-200 transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0 max-w-[320px]"
         :class="
           showInfo
             ? 'w-[320px] translate-x-0'
