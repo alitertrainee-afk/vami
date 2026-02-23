@@ -114,7 +114,8 @@ export const useChatStore = defineStore("chat", {
         const response = await ChatService.fetchConversations();
         this.conversations = response.data.data || [];
       } catch (error) {
-        this.error = error?.response?.data?.message || "Failed to load conversations";
+        this.error =
+          error?.response?.data?.message || "Failed to load conversations";
         console.error("Failed to load conversations:", error);
       } finally {
         this.isLoadingChats = false;
@@ -156,7 +157,8 @@ export const useChatStore = defineStore("chat", {
         this.messages = messages;
         this.pagination = pagination;
       } catch (error) {
-        this.error = error?.response?.data?.message || "Failed to load messages";
+        this.error =
+          error?.response?.data?.message || "Failed to load messages";
         console.error("Failed to load messages:", error);
       } finally {
         this.isLoadingMessages = false;
@@ -196,6 +198,14 @@ export const useChatStore = defineStore("chat", {
         const response = await ChatService.accessChat(userId);
         const chat = response.data.data;
 
+        // Ensure the conversation exists in the sidebar's conversations array
+        const exists = this.conversations.some(
+          (c) => c._id.toString() === chat._id.toString(),
+        );
+        if (!exists) {
+          this.conversations.unshift(chat);
+        }
+
         // Delegate all loading state management to setActiveChat
         await this.setActiveChat(chat);
         return chat;
@@ -210,11 +220,12 @@ export const useChatStore = defineStore("chat", {
     // Socket & Real-Time Actions
     // --------------------------------------------------
     initializeSocket(token) {
+      console.log("🚀 ~ token:", token);
       socketClient.connect(token);
 
       // Listen for incoming messages globally
       socketClient.on("receive_message", (message) => {
-        // 1. If the message belongs to the currently open chat, append it
+        console.log("receive_message______-", message);
         if (this.activeChat && this.activeChat?._id === message.conversation) {
           this.messages.push(message);
         }
@@ -224,16 +235,29 @@ export const useChatStore = defineStore("chat", {
       });
 
       // Sidebar unread count bump for background chats
-      socketClient.on("new_message_notification", ({ chatId }) => {
-        // Skip if already viewing this chat
-        if (this.activeChat?._id === chatId) return;
+      socketClient.on(
+        "new_message_notification",
+        ({ chatId, message, sender }) => {
+          // Skip if already viewing this chat
+          if (this.activeChat?._id === chatId) return;
 
-        const idx = this.conversations.findIndex((c) => c._id === chatId);
-        if (idx !== -1) {
-          this.conversations[idx].unreadCount =
-            (this.conversations[idx].unreadCount || 0) + 1;
-        }
-      });
+          const idx = this.conversations.findIndex((c) => c._id === chatId);
+          if (idx !== -1) {
+            this.conversations[idx].unreadCount =
+              (this.conversations[idx].unreadCount || 0) + 1;
+            console.log(
+              "🚀 ~ this.conversations[idx]:",
+              this.conversations[idx],
+            );
+            // this.conversations[idx].mess =
+            // (this.conversations[idx].unreadCount || 0) + 1;
+            this.updateSidebarLatestMessage(chatId, {
+              content: message,
+              sender: sender,
+            });
+          }
+        },
+      );
 
       // Listen for presence
       socketClient.on("user_status_update", ({ userId, isOnline }) => {
@@ -267,19 +291,27 @@ export const useChatStore = defineStore("chat", {
     },
 
     sendMessage(content) {
+      console.log("🚀 ~ content:", content);
       if (!this.activeChat || !content.trim()) return;
 
       const payload = {
         roomId: this.activeChat?._id,
         content: content.trim(),
       };
+      console.log("🚀 ~ payload:", payload);
 
       // Emit to server
       socketClient.emit("send_message", payload);
     },
 
     updateSidebarLatestMessage(chatId, message) {
-      const chatIndex = this.conversations.findIndex((c) => c._id === chatId);
+      console.log("🚀 ~ message:", message);
+      if (!chatId) return;
+
+      const chatIndex = this.conversations.findIndex(
+        (c) => c._id.toString() === chatId.toString(),
+      );
+
       if (chatIndex !== -1) {
         // Update message and move chat to the top of the array
         const chat = this.conversations[chatIndex];

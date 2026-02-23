@@ -19,7 +19,11 @@ const handleLoadMore = () => {
 };
 
 const handleSend = (content) => {
+  // console.log("🚀 ~ handleSend ~ content:", content)
+  console.log("🚀 ~ handleSend ~ content: Befoere", content)
   chatStore.sendMessage(content);
+  console.log("🚀 ~ handleSend ~ content: AFter", content)
+  
 };
 </script>
 

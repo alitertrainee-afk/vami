@@ -1,5 +1,12 @@
 <script setup>
-// Application root. Global providers or layout wrappers can be injected here later if needed.
+import { socketClient } from './lib/socket.client.js';
+
+if(import.meta.hot){
+  import.meta.hot.dispose(() => {
+    console.log("Hot reload");
+    socketClient.disconnect();
+  });
+}
 </script>
 
 <template>

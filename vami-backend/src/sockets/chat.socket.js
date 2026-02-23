@@ -1,5 +1,8 @@
 // local services
-import { sendMessageService, markAsReadService } from "../services/message.service.js";
+import {
+  sendMessageService,
+  markAsReadService,
+} from "../services/message.service.js";
 import { updateUserPresenceService } from "../services/user.service.js";
 
 // local models
@@ -65,6 +68,7 @@ const chatSocket = (io, socket) => {
 
   // 🔒 Authorized message send — verify membership before writing
   socket.on("send_message", async (data) => {
+    console.log("🚀 ~ chatSocket ~ data:", data);
     const { roomId, content } = data || {};
 
     if (!roomId || !content) {
@@ -75,6 +79,7 @@ const chatSocket = (io, socket) => {
 
     // Authorization: verify the sender is a participant
     const conversation = await isParticipant(userId, roomId);
+    console.log("🚀 ~ chatSocket ~ conversation:", conversation);
     if (!conversation) {
       return socket.emit("error", {
         message: "Unauthorized: You are not a member of this conversation",
@@ -87,6 +92,7 @@ const chatSocket = (io, socket) => {
         chatId: roomId,
         content,
       });
+      console.log("🚀 ~ chatSocket ~ message:", message);
 
       // Emit message to room (only joined participants receive this)
       io.to(roomId).emit("receive_message", message);
@@ -99,7 +105,7 @@ const chatSocket = (io, socket) => {
         io.to(participantId).emit("new_message_notification", {
           chatId: roomId,
           message: message.content,
-          sender: socket.user.username,
+          sender: socket.user._id,
         });
       }
     } catch (error) {
