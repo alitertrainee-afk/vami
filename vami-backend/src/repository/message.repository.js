@@ -1,4 +1,4 @@
-// local imports
+// local models
 import Message from "../models/Message.js";
 import Conversation from "../models/Conversation.js";
 

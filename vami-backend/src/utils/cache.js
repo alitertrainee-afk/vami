@@ -1,12 +1,10 @@
+// local configss
 import { pubClient } from "../config/redis.config.js";
 
+// constants
 const DEFAULT_TTL = 300; // 5 minutes
 
-/**
- * Get a value from Redis cache.
- * @param {string} key - Cache key
- * @returns {Promise<Object|null>} Parsed JSON value or null
- */
+
 export const cacheGet = async (key) => {
     try {
         const data = await pubClient.get(key);
@@ -16,12 +14,6 @@ export const cacheGet = async (key) => {
     }
 };
 
-/**
- * Set a value in Redis cache with TTL.
- * @param {string} key - Cache key
- * @param {Object} value - Value to cache (will be JSON-serialized)
- * @param {number} [ttl=300] - Time-to-live in seconds
- */
 export const cacheSet = async (key, value, ttl = DEFAULT_TTL) => {
     try {
         await pubClient.set(key, JSON.stringify(value), { EX: ttl });
@@ -30,10 +22,7 @@ export const cacheSet = async (key, value, ttl = DEFAULT_TTL) => {
     }
 };
 
-/**
- * Delete a cached value.
- * @param {string} key - Cache key
- */
+
 export const cacheDel = async (key) => {
     try {
         await pubClient.del(key);
@@ -42,10 +31,6 @@ export const cacheDel = async (key) => {
     }
 };
 
-/**
- * Delete all cache keys matching a pattern.
- * @param {string} pattern - Glob pattern (e.g., "user:*")
- */
 export const cacheDelPattern = async (pattern) => {
     try {
         const keys = await pubClient.keys(pattern);

@@ -1,13 +1,10 @@
-// local imports
-import { findUserById } from "../repository/user.repository.js";
+// local utilities
 import { verifyJWTToken } from "../utils/jwt.utils.js";
 import { cacheGet, cacheSet, CACHE_KEYS } from "../utils/cache.js";
 
-/**
- * Socket.IO authentication middleware.
- * Verifies the JWT from the handshake and attaches the user to the socket.
- * Uses Redis cache to avoid a DB hit on every connection.
- */
+// local repository
+import { findUserById } from "../repository/user.repository.js";
+
 const socketAuth = async (socket, next) => {
   try {
     const token = socket.handshake.auth?.token;
@@ -23,7 +20,8 @@ const socketAuth = async (socket, next) => {
     }
 
     // Try cache first, fall back to DB
-    const cacheKey = CACHE_KEYS.user(decoded.id);
+    const cacheKey = CACHE_KEYS.user(decoded?.id);
+    console.log("🚀 ~ socketAuth ~ cacheKey:", cacheKey)
     let user = await cacheGet(cacheKey);
 
     if (!user) {

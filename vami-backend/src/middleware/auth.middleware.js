@@ -1,7 +1,9 @@
-// local imports
+// local utilities
 import { verifyJWTToken } from "../utils/jwt.utils.js";
-import { findUserById } from "../repository/user.repository.js";
 import { ApiError } from "../utils/ApiError.js";
+
+// local repository
+import { findUserById } from "../repository/user.repository.js";
 
 export const protect = async (req, res, next) => {
   const authHeader = req.headers.authorization;

@@ -1,7 +1,7 @@
 // libs imports 
 import mongoose from "mongoose";
 
-// local imports
+// local utilities
 import { ApiError } from "../utils/ApiError.js";
 import { sendResponse } from "../utils/responseHandler.js";
 

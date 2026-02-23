@@ -1,12 +1,16 @@
-// local imports
+// local utilities
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/responseHandler.js";
+
+// local services
 import {
   registerUserService,
   loginUserService,
   refreshTokenService,
 } from "../services/auth.service.js";
 
+
+// constants for auth
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",

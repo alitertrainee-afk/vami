@@ -1,16 +1,20 @@
 // libs imports
 import express from "express";
 
-// local imports
+// local controllers
 import {
     loginUser,
     registerUser,
     refreshToken,
     logoutUser,
 } from "../controllers/auth.controller.js";
-import { authLimiter } from "../middleware/ratelimit.middleware.js";
+
+// local validators
 import { loginSchema, registerSchema } from "../validators/auth.validator.js";
+
+// local middleware
 import { validate } from "../middleware/validate.middleware.js";
+import { authLimiter } from "../middleware/ratelimit.middleware.js";
 
 // intialize router
 const router = express.Router();

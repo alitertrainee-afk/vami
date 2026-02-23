@@ -1,10 +1,14 @@
 // libs imports
 import express from "express";
 
-// local imports
+// local controllers
 import { allMessages, sendMessage } from "../controllers/message.controller.js";
+
+// local middleware
 import { protect } from "../middleware/auth.middleware.js";
 import { validate } from "../middleware/validate.middleware.js";
+
+// local validators
 import {
   getMessagesSchema,
   sendMessageSchema,

@@ -4,16 +4,18 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
-// local imports
+// local configs
 import connectDB from "./config/database.config.js";
+
+// local middleware
 import errorHandler from "./middleware/error.middleware.js";
+import { apiLimiter } from "./middleware/ratelimit.middleware.js";
 
 // routes imports
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import messageRoutes from "./routes/message.routes.js";
-import { apiLimiter } from "./middleware/ratelimit.middleware.js";
 
 // initialize express
 const app = express();

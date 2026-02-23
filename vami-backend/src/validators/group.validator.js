@@ -1,4 +1,7 @@
+// libs imports
 import { z } from "zod";
+
+// local validators
 import { objectIdSchema } from "./chat.validator.js";
 
 export const createGroupSchema = z.object({

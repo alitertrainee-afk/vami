@@ -1,12 +1,16 @@
-// local imports
+// local utilities
 import { ApiError } from "../utils/ApiError.js";
 import { generateToken, verifyJWTToken } from "../utils/jwt.utils.js";
+
+// local repository
 import {
     findUserByEmailOrUsername,
     createUser,
     findUserById,
 } from "../repository/user.repository.js";
 
+
+// constants
 const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_EXPIRY = "7d";
 

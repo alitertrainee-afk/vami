@@ -1,5 +1,7 @@
-// local imports
+// local utilities
 import { ApiError } from "../utils/ApiError.js";
+
+// local repository
 import {
   findOneOnOneChat,
   createOneOnOneChat,

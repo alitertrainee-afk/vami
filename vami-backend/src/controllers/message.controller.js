@@ -1,6 +1,8 @@
-// local imports
+// local utilities
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/responseHandler.js";
+
+// local services
 import {
   getAllMessagesService,
   sendMessageService,

@@ -1,12 +1,10 @@
-// local imports
+// local services
 import { sendMessageService, markAsReadService } from "../services/message.service.js";
 import { updateUserPresenceService } from "../services/user.service.js";
+
+// local models
 import Conversation from "../models/Conversation.js";
 
-/**
- * Check if a user is a participant of a given conversation.
- * Returns the conversation document if authorized, null otherwise.
- */
 const isParticipant = async (userId, roomId) => {
   return Conversation.findOne({
     _id: roomId,

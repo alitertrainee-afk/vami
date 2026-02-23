@@ -1,8 +1,6 @@
+// local models
 import ConversationParticipant from "../models/ConversationParticipant.js";
 
-/**
- * Create participant records for all users in a conversation.
- */
 export const createParticipants = async (conversationId, userIds) => {
     const docs = userIds.map((userId) => ({
         conversation: conversationId,
@@ -13,9 +11,6 @@ export const createParticipants = async (conversationId, userIds) => {
     return ConversationParticipant.insertMany(docs, { ordered: false });
 };
 
-/**
- * Get a user's participant record for a specific conversation.
- */
 export const findParticipant = async (conversationId, userId) => {
     return ConversationParticipant.findOne({
         conversation: conversationId,
@@ -23,9 +18,6 @@ export const findParticipant = async (conversationId, userId) => {
     });
 };
 
-/**
- * Increment unread count for all participants in a conversation except the sender.
- */
 export const incrementUnreadForOthers = async (conversationId, senderUserId) => {
     return ConversationParticipant.updateMany(
         {
@@ -36,9 +28,7 @@ export const incrementUnreadForOthers = async (conversationId, senderUserId) => 
     );
 };
 
-/**
- * Reset unread count and update lastReadAt for a specific user in a conversation.
- */
+
 export const markConversationAsRead = async (conversationId, userId, messageId = null) => {
     const update = {
         unreadCount: 0,
@@ -56,25 +46,18 @@ export const markConversationAsRead = async (conversationId, userId, messageId =
     );
 };
 
-/**
- * Get all participant records for a user (for sidebar with unread counts).
- */
 export const findUserParticipantRecords = async (userId) => {
     return ConversationParticipant.find({ user: userId })
         .select("conversation unreadCount isPinned isArchived isMuted lastReadAt")
         .lean();
 };
 
-/**
- * Delete all participant records for a conversation.
- */
+
 export const deleteParticipants = async (conversationId) => {
     return ConversationParticipant.deleteMany({ conversation: conversationId });
 };
 
-/**
- * Add a single participant to a conversation (for group chat add member).
- */
+
 export const addParticipant = async (conversationId, userId) => {
     return ConversationParticipant.create({
         conversation: conversationId,
@@ -83,9 +66,6 @@ export const addParticipant = async (conversationId, userId) => {
     });
 };
 
-/**
- * Remove a single participant from a conversation.
- */
 export const removeParticipant = async (conversationId, userId) => {
     return ConversationParticipant.findOneAndDelete({
         conversation: conversationId,
