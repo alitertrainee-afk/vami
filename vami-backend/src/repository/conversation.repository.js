@@ -17,7 +17,6 @@ export const findOneOnOneChat = async (userId, otherUserId) => {
 
 export const createOneOnOneChat = async (userId, otherUserId) => {
   const chat = await Conversation.create({
-    chatName: "sender",
     isGroupChat: false,
     participants: [userId, otherUserId],
   });

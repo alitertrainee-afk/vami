@@ -37,13 +37,17 @@ const transitionClasses = computed(() => {
       :leave-to-class="transitionClasses.leaveTo"
       mode="out-in"
     >
-      <component
+      <div
         v-if="currentPanel"
-        :is="currentPanel.component"
         :key="currentPanel.id"
-        v-bind="currentPanel.props"
         class="h-full w-full absolute inset-0 bg-white"
-      />
+      >
+        <component
+          :is="currentPanel.component"
+          v-bind="currentPanel.props"
+          class="h-full w-full"
+        />
+      </div>
     </Transition>
   </div>
 </template>

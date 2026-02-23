@@ -42,7 +42,7 @@ const handleToggleInfo = () => {
   if (isRightPanelOpen.value) {
     panelStacks.value.right = [];
   } else {
-    chatUI.toggleInfoPanel();
+    openPanel("right", () => import("../../components/chat/RightSidebar/views/ChatInfoPanel.vue"));
   }
 };
 </script>

@@ -3,23 +3,23 @@ import Message from "../models/Message.js";
 import Conversation from "../models/Conversation.js";
 
 export const findMessages = async ({ chatId, skip, limit, sort }) => {
-  return Message.find({ conversationId: chatId })
+  return Message.find({ conversation: chatId })
     .sort(sort)
     .skip(skip)
     .limit(limit)
     .populate("sender", "username profile.avatar email")
-    .populate("conversationId");
+    .populate("conversation");
 };
 
 export const countMessages = async (chatId) => {
-  return Message.countDocuments({ conversationId: chatId });
+  return Message.countDocuments({ conversation: chatId });
 };
 
 export const insertMessage = async ({ senderId, chatId, content }) => {
   return Message.create({
     sender: senderId,
     content,
-    conversationId: chatId,
+    conversation: chatId,
   });
 };
 

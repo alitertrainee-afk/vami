@@ -2,8 +2,9 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-    conversationId: {
-      type: String, // Can be "user1_id-user2_id" or a Room ID
+    conversation: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Conversation",
       required: true,
       index: true,
     },
@@ -26,8 +27,8 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Compound index for fast history lookup
-messageSchema.index({ conversationId: 1, createdAt: -1 });
+// indexing
+messageSchema.index({ conversation: 1, createdAt: -1 });
 
 const Message = mongoose.model("Message", messageSchema);
 export default Message;

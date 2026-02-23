@@ -7,7 +7,6 @@ export const searchUsers = asyncHandler(async (req, res) => {
     search: req.query.search,
     currentUserId: req.user?._id,
   });
-  console.log("🚀 ~ users:", users)
 
   return sendResponse(res, 200, "Users fetched successfully", users);
 });

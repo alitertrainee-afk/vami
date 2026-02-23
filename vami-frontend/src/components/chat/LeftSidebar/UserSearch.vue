@@ -1,39 +1,34 @@
 <script setup>
 import { ref, watch } from "vue";
-import { UserService } from "../../../services/user.service.js";
 import { useDebouncedRef } from "../../../hooks/useDebounce.js";
+import { useChatStore } from "../../../store/chat.store.js";
 
 // Import our new Molecule
 import SearchInput from "../../ui/molecules/SearchInput.vue";
 
-const isSearching = ref(false);
-const searchResults = ref([]);
-const rawInput = ref("");
+const chatStore = useChatStore();
+const rawInput = ref(chatStore.searchQuery);
+const debouncedSearch = useDebouncedRef("", 300);
 
-const searchQuery = useDebouncedRef("", 300);
-
+// 1. Sync input to debouncer
 watch(rawInput, (val) => {
-  searchQuery.value = val;
+  debouncedSearch.value = val;
 });
 
-watch(searchQuery, async (newQuery) => {
-  if (!newQuery.trim()) {
-    searchResults.value = [];
-    return;
-  }
-
-  isSearching.value = true;
-
-  try {
-    const response = await UserService.searchUsers(newQuery);
-    searchResults.value = response.data.data || [];
-  } catch (error) {
-    console.error("Search failed:", error);
-    searchResults.value = [];
-  } finally {
-    isSearching.value = false;
-  }
+// 2. Dispatch action to store when user stops typing
+watch(debouncedSearch, (newQuery) => {
+  chatStore.handleSearch(newQuery);
 });
+
+// 3. Clear input box if the store resets the search query externally
+watch(
+  () => chatStore.searchQuery,
+  (newVal) => {
+    if (newVal === "") {
+      rawInput.value = "";
+    }
+  },
+);
 </script>
 
 <template>
@@ -41,7 +36,7 @@ watch(searchQuery, async (newQuery) => {
     <SearchInput
       v-model="rawInput"
       placeholder="Search or start a new chat"
-      :isLoading="isSearching"
+      :isLoading="chatStore.isSearching"
     />
   </div>
 </template>

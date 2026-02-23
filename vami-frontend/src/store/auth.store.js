@@ -10,12 +10,22 @@ import {
 } from "../utils/localstorage.utils.js";
 
 export const useAuthStore = defineStore("auth", {
-  state: () => ({
-    user: JSON.parse(getLocalStorageItem("vami_user")) || null,
-    token: getLocalStorageItem("vami_token") || null,
-    isLoading: false,
-    error: null,
-  }),
+  state: () => {
+    let user = null;
+    try {
+      const raw = getLocalStorageItem("vami_user");
+      user = raw ? JSON.parse(raw) : null;
+    } catch {
+      removeLocalStorageItem("vami_user");
+    }
+
+    return {
+      user,
+      token: getLocalStorageItem("vami_token") || null,
+      isLoading: false,
+      error: null,
+    };
+  },
 
   getters: {
     isAuthenticated: (state) => !!state.token && !!state.user,

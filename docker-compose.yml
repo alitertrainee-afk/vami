@@ -18,6 +18,7 @@ services:
     deploy:
       replicas: 2
     environment:
+      - PORT=3000
       - REDIS_URL=redis://redis:6379
       - MONGO_URI=mongodb://mongo:27017/vami
     depends_on:

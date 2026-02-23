@@ -3,38 +3,37 @@ import { ref } from "vue";
 import { useClickOutside } from "../../../hooks/useClickOutside.js";
 
 const props = defineProps({
-  items: {
-    type: Array,
-    required: true,
-    validator: (value) => {
-      return value.every(
-        (item) => item.separator || (item.label && item.action),
-      );
-    },
-  },
-  position: {
-    type: String,
-    default: "bottom-right",
-  },
-  width: {
-    type: String,
-    default: "w-[220px]", // WhatsApp menus are usually a bit wider
-  },
+  items: { type: Array, required: true },
+  position: { type: String, default: "bottom-right" },
+  width: { type: String, default: "w-[220px]" },
 });
 
 const emit = defineEmits(["select"]);
 
 const isOpen = ref(false);
 const menuRef = ref(null);
+const coords = ref({ top: "0px", right: "0px", left: "auto" });
 
-// Close menu logic
 const close = () => (isOpen.value = false);
-const toggle = () => (isOpen.value = !isOpen.value);
 
-// Apply strict outside click detection
-useClickOutside(menuRef, () => {
-  if (isOpen.value) close();
-});
+// Grab exact position directly from the click event instantly
+const toggle = (e) => {
+  if (!isOpen.value) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    coords.value = {
+      top: `${rect.bottom + 4}px`,
+      right:
+        props.position === "bottom-right"
+          ? `${window.innerWidth - rect.right}px`
+          : "auto",
+      left: props.position === "bottom-left" ? `${rect.left}px` : "auto",
+    };
+  }
+  isOpen.value = !isOpen.value;
+};
+
+// Handle clicks outside the teleported menu
+useClickOutside(menuRef, close);
 
 const handleAction = (item) => {
   if (item.separator) return;
@@ -44,11 +43,11 @@ const handleAction = (item) => {
 </script>
 
 <template>
-  <div class="relative inline-block text-left" ref="menuRef">
-    <div @click.stop="toggle" class="cursor-pointer">
-      <slot name="trigger" :isOpen="isOpen" />
-    </div>
+  <div class="inline-block" @click.stop="toggle">
+    <slot name="trigger" :isOpen="isOpen" />
+  </div>
 
+  <Teleport to="body">
     <transition
       enter-active-class="transition ease-out duration-100"
       enter-from-class="transform opacity-0 scale-95"
@@ -59,27 +58,29 @@ const handleAction = (item) => {
     >
       <div
         v-if="isOpen"
+        ref="menuRef"
+        :style="{
+          position: 'fixed',
+          top: coords.top,
+          right: coords.right,
+          left: coords.left,
+        }"
         :class="[
-          'absolute z-50 mt-1 origin-top-right rounded-xl bg-white shadow-[0_2px_15px_rgba(11,20,26,.1)] ring-1 ring-black/5 focus:outline-none',
+          'z-[9999] rounded-xl bg-white shadow-[0_2px_15px_rgba(11,20,26,.1)] ring-1 ring-black/5 focus:outline-none',
           width,
-          position === 'bottom-right' ? 'right-0' : 'left-0',
         ]"
-        role="menu"
       >
         <div class="py-2">
           <template v-for="(item, index) in items" :key="index">
             <div
               v-if="item.separator"
               class="h-[1px] bg-[#e9edef] my-1.5"
-              role="separator"
             ></div>
-
             <button
               v-else
               @click.stop="handleAction(item)"
-              class="flex w-full items-center px-5 py-[10px] text-left hover:bg-[#f5f6f6] focus:bg-[#f5f6f6] outline-none"
+              class="flex w-full items-center px-5 py-[10px] text-left hover:bg-[#f5f6f6] focus:outline-none"
               :class="item.danger ? 'text-[#ea0038]' : 'text-[#3b4a54]'"
-              role="menuitem"
             >
               <component
                 v-if="item.icon"
@@ -96,5 +97,5 @@ const handleAction = (item) => {
         </div>
       </div>
     </transition>
-  </div>
+  </Teleport>
 </template>

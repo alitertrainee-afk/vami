@@ -11,7 +11,6 @@ export const searchUsersService = async ({ search, currentUserId }) => {
 
   // Optional: normalize search input
   const keyword = search?.trim();
-  console.log("🚀 ~ searchUsersService ~ keyword:", keyword)
 
   return searchUsers({
     keyword,

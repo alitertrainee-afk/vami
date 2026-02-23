@@ -16,7 +16,7 @@ export const accessChat = asyncHandler(async (req, res) => {
 });
 
 export const fetchChats = asyncHandler(async (req, res) => {
-  const chats = await fetchChatsService(req.user._id);
+  const chats = await fetchChatsService(req.user?._id);
 
   return sendResponse(res, 200, "Chats fetched successfully", chats);
 });

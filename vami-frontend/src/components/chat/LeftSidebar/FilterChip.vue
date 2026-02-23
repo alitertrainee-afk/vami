@@ -1,21 +1,21 @@
 <script setup>
-// libs import
-import { ref } from "vue";
+import { computed } from "vue";
+import { useChatStore } from "../../../store/chat.store.js";
 
 // UI Imports - [Atoms]
 import Button from "../../ui/atoms/Button.vue";
 
-// state
-const activeFilter = ref("all");
+const chatStore = useChatStore();
 
-const filters = [
+// Dynamically generate filters so counts are reactive
+const filters = computed(() => [
   { key: "all", label: "All" },
-  { key: "unread", label: "Unread", count: 181 },
-  { key: "favourites", label: "Favourites" },
-];
+  { key: "unread", label: "Unread", count: chatStore.unreadChatsCount },
+  { key: "groups", label: "Groups" }, // Added to match store logic
+]);
 
 const buttonVariant = (key) =>
-  activeFilter.value === key ? "soft-success" : "soft";
+  chatStore.activeFilter === key ? "soft-success" : "soft";
 </script>
 
 <template>
@@ -28,7 +28,7 @@ const buttonVariant = (key) =>
       :variant="buttonVariant(filter?.key)"
       size="sm"
       rounded="2xl"
-      @click="activeFilter = filter?.key"
+      @click="chatStore.setFilter(filter?.key)"
     >
       {{ filter?.label }}
       <span v-if="filter.count" class="ml-1 opacity-70">

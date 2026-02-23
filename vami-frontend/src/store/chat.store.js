@@ -4,6 +4,8 @@ import { defineStore } from "pinia";
 // local imports
 import { ChatService } from "@/services/chat.service";
 import { socketClient } from "@/core/sockets/socket.client";
+import { UserService } from "@/services/user.service"; // <-- Added for global user search
+import { useAuthStore } from "./auth.store"; // <-- Added to get current user ID for chat filtering
 
 export const useChatStore = defineStore("chat", {
   state: () => {
@@ -17,10 +19,91 @@ export const useChatStore = defineStore("chat", {
       isLoadingMessages: false,
       onlineUsers: new Set(),
       typingUsers: new Set(),
+
+      // --- NEW STATE: Search & Filters ---
+      activeFilter: "all",
+      searchQuery: "",
+      searchResults: [],
+      isSearching: false,
     };
   },
 
+  getters: {
+    unreadMessagesTotal(state) {
+      return state.conversations.reduce(
+        (total, chat) => total + (chat?.unreadCount || 0),
+        0,
+      );
+    },
+
+    unreadChatsCount(state) {
+      return state.conversations.filter((chat) => chat?.unreadCount > 0).length;
+    },
+
+    // Compute the list of chats based on BOTH the active tab and the search input
+    filteredConversations(state) {
+      const authStore = useAuthStore();
+      const currentUserId = authStore.user?._id;
+
+      return state.conversations.filter((chat) => {
+        // 1. FILTER BY TAB
+        if (state.activeFilter === "unread" && !(chat?.unreadCount > 0))
+          return false;
+        if (state.activeFilter === "groups" && !chat?.isGroupChat) return false;
+        if (state.activeFilter === "favourites" && !chat?.isPinned)
+          return false;
+
+        // 2. FILTER BY SEARCH QUERY (Local Conversation Search)
+        if (state.searchQuery.trim()) {
+          const query = state.searchQuery.toLowerCase();
+          let chatName = "";
+
+          if (chat?.isGroupChat) {
+            chatName = chat.chatName || "";
+          } else {
+            const otherUser = chat?.participants?.find(
+              (p) => p?._id !== currentUserId,
+            );
+            chatName = otherUser?.username || "Unknown User";
+          }
+
+          if (!chatName.toLowerCase().includes(query)) return false;
+        }
+
+        return true;
+      });
+    },
+  },
+
   actions: {
+    // --------------------------------------------------
+    // Search & Filter Actions (NEW)
+    // --------------------------------------------------
+    setFilter(filterKey) {
+      this.activeFilter = filterKey;
+    },
+
+    async handleSearch(query) {
+      this.searchQuery = query;
+
+      if (!query.trim()) {
+        this.searchResults = [];
+        return;
+      }
+
+      this.isSearching = true;
+      try {
+        // Fetch global users for starting new chats based on the query
+        const response = await UserService.searchUsers(query);
+        this.searchResults = response.data.data || [];
+      } catch (error) {
+        console.error("Search failed:", error);
+        this.searchResults = [];
+      } finally {
+        this.isSearching = false;
+      }
+    },
+
     // --------------------------------------------------
     // REST API Actions
     // --------------------------------------------------
@@ -90,6 +173,24 @@ export const useChatStore = defineStore("chat", {
       }
     },
 
+    async setActiveChatFromUser(userId) {
+      this.isLoadingMessages = true;
+      try {
+        // This hits the backend POST /chats endpoint we made earlier
+        const response = await ChatService.accessChat(userId);
+        const chat = response.data.data;
+
+        // Now pass the resulting chat object to our existing setActiveChat logic
+        await this.setActiveChat(chat);
+        return chat;
+      } catch (error) {
+        console.error("Failed to create/access chat:", error);
+        throw error;
+      } finally {
+        this.isLoadingMessages = false;
+      }
+    },
+
     // --------------------------------------------------
     // Socket & Real-Time Actions
     // --------------------------------------------------
@@ -99,15 +200,12 @@ export const useChatStore = defineStore("chat", {
       // Listen for incoming messages globally
       socketClient.on("receive_message", (message) => {
         // 1. If the message belongs to the currently open chat, append it
-        if (
-          this.activeChat &&
-          this.activeChat?._id === message.conversationId
-        ) {
+        if (this.activeChat && this.activeChat?._id === message.conversation) {
           this.messages.push(message);
         }
 
         // 2. Update the sidebar's "latestMessage" so it bubbles to the top
-        this.updateSidebarLatestMessage(message?.conversationId, message);
+        this.updateSidebarLatestMessage(message?.conversation, message);
       });
 
       // Listen for presence
@@ -144,25 +242,6 @@ export const useChatStore = defineStore("chat", {
         chat.latestMessage = message;
         this.conversations.splice(chatIndex, 1);
         this.conversations.unshift(chat);
-      }
-    },
-
-    // Add this inside the actions {} block of your chat.store.js
-    async setActiveChatFromUser(userId) {
-      this.isLoadingMessages = true;
-      try {
-        // This hits the backend POST /chats endpoint we made earlier
-        const response = await ChatService.accessChat(userId);
-        const chat = response.data.data;
-
-        // Now pass the resulting chat object to our existing setActiveChat logic
-        await this.setActiveChat(chat);
-        return chat;
-      } catch (error) {
-        console.error("Failed to create/access chat:", error);
-        throw error;
-      } finally {
-        this.isLoadingMessages = false;
       }
     },
   },

@@ -1,6 +1,18 @@
 // local imports
 import { sendMessageService } from "../service/message.service.js";
 import { updateUserPresenceService } from "../service/user.service.js";
+import Conversation from "../models/Conversation.js";
+
+/**
+ * Check if a user is a participant of a given conversation.
+ * Returns the conversation document if authorized, null otherwise.
+ */
+const isParticipant = async (userId, roomId) => {
+  return Conversation.findOne({
+    _id: roomId,
+    participants: userId,
+  });
+};
 
 const chatSocket = (io, socket) => {
   const userId = socket.user?._id;
@@ -21,9 +33,17 @@ const chatSocket = (io, socket) => {
   // User connected
   updatePresence(true);
 
-
-  socket.on("join_room", (roomId) => {
+  // 🔒 Authorized room join — verify user is a participant before joining
+  socket.on("join_room", async (roomId) => {
     if (!roomId) return;
+
+    const conversation = await isParticipant(userId, roomId);
+    if (!conversation) {
+      return socket.emit("error", {
+        message: "Unauthorized: You are not a member of this conversation",
+      });
+    }
+
     socket.join(roomId);
   });
 
@@ -35,13 +55,21 @@ const chatSocket = (io, socket) => {
     socket.to(roomId).emit("user_stopped_typing", { userId, roomId });
   });
 
+  // 🔒 Authorized message send — verify membership before writing
   socket.on("send_message", async (data) => {
-    console.log("🚀 ~ chatSocket ~ data:", data)
     const { roomId, content } = data || {};
 
     if (!roomId || !content) {
       return socket.emit("error", {
         message: "Invalid message payload",
+      });
+    }
+
+    // Authorization: verify the sender is a participant
+    const conversation = await isParticipant(userId, roomId);
+    if (!conversation) {
+      return socket.emit("error", {
+        message: "Unauthorized: You are not a member of this conversation",
       });
     }
 
@@ -51,17 +79,27 @@ const chatSocket = (io, socket) => {
         chatId: roomId,
         content,
       });
-      console.log("🚀 ~ chatSocket ~ message:", message)
 
-      // Emit message to room
+      // Emit message to room (only joined participants receive this)
       io.to(roomId).emit("receive_message", message);
 
-      // Sidebar notification
-      socket.broadcast.emit("new_message_notification", {
-        chatId: roomId,
-        message: message.content,
-        sender: socket.user.username,
-      });
+      // Notify only conversation participants (not all connected users)
+      const participantIds = conversation.participants.map((p) => p.toString());
+      for (const participantId of participantIds) {
+        if (participantId === userId.toString()) continue; // skip sender
+
+        // Emit to all sockets belonging to this participant
+        const sockets = await io.fetchSockets();
+        for (const s of sockets) {
+          if (s.user?._id?.toString() === participantId) {
+            s.emit("new_message_notification", {
+              chatId: roomId,
+              message: message.content,
+              sender: socket.user.username,
+            });
+          }
+        }
+      }
     } catch (error) {
       socket.emit("error", {
         message: error.message || "Message failed",

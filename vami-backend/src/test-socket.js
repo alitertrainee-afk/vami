@@ -1,16 +1,24 @@
 import { io } from "socket.io-client";
 
-const URL = "http://localhost:5000"; // Make sure this matches your server port
+const URL = "http://localhost:5000";
 
-// PASTE YOUR TOKEN HERE
-const YOUR_REAL_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OGVjZGMzZmE1ODM2ZDQ3NGNhZTVhNCIsImlhdCI6MTc3MDk2NjQ2NywiZXhwIjoxNzcxNTcxMjY3fQ.PU7nu5HbM8VDvW16dr3zfQPTHMCy_j08D4tGsRLT1MM";
+// ⚠️ Pass your token as an environment variable:
+//   TOKEN=eyJ... node src/test-socket.js
+const YOUR_REAL_TOKEN = process.env.TOKEN;
+
+if (!YOUR_REAL_TOKEN) {
+  console.error(
+    "❌ No token provided. Run with: TOKEN=<your_jwt> node src/test-socket.js",
+  );
+  process.exit(1);
+}
+
 console.log("--- Starting Tests ---");
 
 // TEST 1: Bad Connection (No Token)
 const badSocket = io(URL, {
   auth: { token: null },
-  transports: ["websocket"], // Force websocket to fail faster if blocked
+  transports: ["websocket"],
 });
 
 badSocket.on("connect_error", (err) => {
@@ -34,7 +42,7 @@ function runAuthenticatedTest() {
   goodSocket.on("connect", () => {
     console.log(`[TEST 2] ✅ PASSED: User connected successfully!`);
     console.log(`Socket ID: ${goodSocket.id}`);
-    goodSocket.disconnect(); // Clean exit
+    goodSocket.disconnect();
   });
 
   goodSocket.on("connect_error", (err) => {
