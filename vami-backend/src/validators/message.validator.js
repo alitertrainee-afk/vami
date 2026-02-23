@@ -15,4 +15,8 @@ export const getMessagesSchema = z.object({
   params: z.object({
     chatId: objectIdSchema,
   }),
+  query: z.object({
+    page: z.coerce.number().int().min(1).optional(),
+    limit: z.coerce.number().int().min(1).max(100).optional(),
+  }).optional(),
 });

@@ -19,6 +19,7 @@ export const useChatStore = defineStore("chat", {
       isLoadingMessages: false,
       onlineUsers: new Set(),
       typingUsers: new Set(),
+      error: null,
 
       // --- NEW STATE: Search & Filters ---
       activeFilter: "all",
@@ -113,6 +114,7 @@ export const useChatStore = defineStore("chat", {
         const response = await ChatService.fetchConversations();
         this.conversations = response.data.data || [];
       } catch (error) {
+        this.error = error?.response?.data?.message || "Failed to load conversations";
         console.error("Failed to load conversations:", error);
       } finally {
         this.isLoadingChats = false;
@@ -154,6 +156,7 @@ export const useChatStore = defineStore("chat", {
         this.messages = messages;
         this.pagination = pagination;
       } catch (error) {
+        this.error = error?.response?.data?.message || "Failed to load messages";
         console.error("Failed to load messages:", error);
       } finally {
         this.isLoadingMessages = false;
@@ -188,20 +191,18 @@ export const useChatStore = defineStore("chat", {
     },
 
     async setActiveChatFromUser(userId) {
-      this.isLoadingMessages = true;
       try {
-        // This hits the backend POST /chats endpoint we made earlier
+        // This hits the backend POST /chats endpoint
         const response = await ChatService.accessChat(userId);
         const chat = response.data.data;
 
-        // Now pass the resulting chat object to our existing setActiveChat logic
+        // Delegate all loading state management to setActiveChat
         await this.setActiveChat(chat);
         return chat;
       } catch (error) {
+        this.error = error?.response?.data?.message || "Failed to access chat";
         console.error("Failed to create/access chat:", error);
         throw error;
-      } finally {
-        this.isLoadingMessages = false;
       }
     },
 

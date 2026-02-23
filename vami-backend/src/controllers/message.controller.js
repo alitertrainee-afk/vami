@@ -9,7 +9,7 @@ import {
 } from "../services/message.service.js";
 
 export const allMessages = asyncHandler(async (req, res) => {
-  const data = await getAllMessagesService(req.params.chatId, req.query);
+  const data = await getAllMessagesService(req.params.chatId, req.query, req.user._id);
 
   return sendResponse(res, 200, "Messages fetched successfully", data);
 });

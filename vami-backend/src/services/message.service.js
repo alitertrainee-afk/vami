@@ -9,13 +9,20 @@ import {
   updateConversationLatestMessage,
 } from "../repository/message.repository.js";
 import {
+  findParticipant,
   incrementUnreadForOthers,
   markConversationAsRead,
 } from "../repository/participant.repository.js";
 
-export const getAllMessagesService = async (chatId, query) => {
+export const getAllMessagesService = async (chatId, query, currentUserId) => {
   if (!chatId) {
     throw new ApiError(400, "ChatId is required");
+  }
+
+  // Verify user is a participant (prevents IDOR)
+  const participant = await findParticipant(chatId, currentUserId);
+  if (!participant) {
+    throw new ApiError(403, "You are not a member of this conversation");
   }
 
   const page = Math.max(Number(query.page) || 1, 1);

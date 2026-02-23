@@ -19,6 +19,10 @@ export const accessChatService = async ({ userId, currentUserId }) => {
     throw new ApiError(400, "UserId param not sent with request");
   }
 
+  if (userId.toString() === currentUserId.toString()) {
+    throw new ApiError(400, "Cannot create a chat with yourself");
+  }
+
   const existingChat = await findOneOnOneChat(currentUserId, userId);
 
   if (existingChat.length > 0) {

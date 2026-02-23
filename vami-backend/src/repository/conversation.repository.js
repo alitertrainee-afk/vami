@@ -19,15 +19,27 @@ export const findOneOnOneChat = async (userId, otherUserId) => {
 };
 
 export const createOneOnOneChat = async (userId, otherUserId) => {
-  const chat = await Conversation.create({
-    isGroupChat: false,
-    participants: [userId, otherUserId],
-  });
+  const session = await Conversation.startSession();
+  session.startTransaction();
 
-  await createParticipants(chat?._id, [userId, otherUserId]);
+  try {
+    const [chat] = await Conversation.create(
+      [{ isGroupChat: false, participants: [userId, otherUserId] }],
+      { session },
+    );
 
-  return Conversation.findById(chat._id)
-    .populate("participants", "username email profile.avatar isOnline");
+    await createParticipants(chat._id, [userId, otherUserId], session);
+
+    await session.commitTransaction();
+
+    return Conversation.findById(chat._id)
+      .populate("participants", "username email profile.avatar isOnline");
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
 };
 
 export const findUserChats = async (userId) => {

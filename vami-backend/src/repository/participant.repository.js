@@ -1,14 +1,17 @@
 // local models
 import ConversationParticipant from "../models/ConversationParticipant.js";
 
-export const createParticipants = async (conversationId, userIds) => {
+export const createParticipants = async (conversationId, userIds, session = null) => {
     const docs = userIds.map((userId) => ({
         conversation: conversationId,
         user: userId,
         unreadCount: 0,
     }));
 
-    return ConversationParticipant.insertMany(docs, { ordered: false });
+    const options = { ordered: false };
+    if (session) options.session = session;
+
+    return ConversationParticipant.insertMany(docs, options);
 };
 
 export const findParticipant = async (conversationId, userId) => {
