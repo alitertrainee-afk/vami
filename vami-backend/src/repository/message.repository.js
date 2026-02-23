@@ -16,11 +16,14 @@ export const countMessages = async (chatId) => {
 };
 
 export const insertMessage = async ({ senderId, chatId, content }) => {
-  return Message.create({
+  const message = await Message.create({
     sender: senderId,
     content,
     conversation: chatId,
   });
+
+  // Populate sender so the socket can emit a complete object
+  return message.populate("sender", "username profile.avatar email");
 };
 
 export const updateConversationLatestMessage = async (chatId, messageId) => {

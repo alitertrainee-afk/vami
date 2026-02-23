@@ -125,11 +125,19 @@ export const useChatStore = defineStore("chat", {
       this.currentPage = 1;
       this.pagination = null;
 
-      socketClient.emit("join_room", chat?._id);
+      if (!chat) return;
+
+      socketClient.emit("join_room", chat._id);
+      socketClient.emit("mark_as_read", chat._id);
+
+      // Reset local unread count for this conversation
+      const idx = this.conversations.findIndex((c) => c._id === chat._id);
+      if (idx !== -1) {
+        this.conversations[idx].unreadCount = 0;
+      }
 
       this.isLoadingMessages = true;
       try {
-        if (!chat) return;
         const response = await ChatService.fetchMessages(chat._id, {
           page: 1,
           limit: 20,

@@ -2,7 +2,12 @@
 import express from "express";
 
 // local imports
-import { loginUser, registerUser } from "../controllers/auth.controller.js";
+import {
+    loginUser,
+    registerUser,
+    refreshToken,
+    logoutUser,
+} from "../controllers/auth.controller.js";
 import { authLimiter } from "../middleware/ratelimit.middleware.js";
 import { loginSchema, registerSchema } from "../validators/auth.validator.js";
 import { validate } from "../middleware/validate.middleware.js";
@@ -12,5 +17,7 @@ const router = express.Router();
 
 router.post("/register", authLimiter, validate(registerSchema), registerUser);
 router.post("/login", authLimiter, validate(loginSchema), loginUser);
+router.post("/refresh", refreshToken);
+router.post("/logout", logoutUser);
 
 export default router;

@@ -38,8 +38,6 @@ export const useAuthStore = defineStore("auth", {
 
       try {
         const response = await AuthService.login(credentials);
-
-        // Destructure based on your backend ApiResponse format
         const { user, token } = response.data?.data;
 
         this.user = user;
@@ -57,12 +55,64 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    logout() {
+    async register(userData) {
+      this.isLoading = true;
+      this.error = null;
+
+      try {
+        const response = await AuthService.register(userData);
+        const { user, token } = response.data?.data;
+
+        this.user = user;
+        this.token = token;
+
+        setLocalStorageItem("vami_token", token);
+        setLocalStorageItem("vami_user", JSON.stringify(user));
+
+        return true;
+      } catch (err) {
+        this.error = err.message;
+        return false;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async logout() {
+      try {
+        await AuthService.logout();
+      } catch {
+        // Proceed with local cleanup even if the server call fails
+      }
+
       this.user = null;
       this.token = null;
       this.error = null;
       removeLocalStorageItem("vami_token");
       removeLocalStorageItem("vami_user");
+    },
+
+    /**
+     * Attempt to refresh the access token using the HttpOnly refresh cookie.
+     * Called by the response interceptor on 401.
+     */
+    async refreshAccessToken() {
+      try {
+        const response = await AuthService.refresh();
+        const { user, token } = response.data?.data;
+
+        this.user = user;
+        this.token = token;
+
+        setLocalStorageItem("vami_token", token);
+        setLocalStorageItem("vami_user", JSON.stringify(user));
+
+        return token;
+      } catch {
+        // Refresh failed — force logout
+        await this.logout();
+        return null;
+      }
     },
 
     clearError() {

@@ -6,6 +6,10 @@ import {
   insertMessage,
   updateConversationLatestMessage,
 } from "../repository/message.repository.js";
+import {
+  incrementUnreadForOthers,
+  markConversationAsRead,
+} from "../repository/participant.repository.js";
 
 export const getAllMessagesService = async (chatId, query) => {
   if (!chatId) {
@@ -51,7 +55,20 @@ export const sendMessageService = async ({ senderId, chatId, content }) => {
     content,
   });
 
-  await updateConversationLatestMessage(chatId, message._id);
+  // Update conversation's latest message and increment unread for others
+  await Promise.all([
+    updateConversationLatestMessage(chatId, message._id),
+    incrementUnreadForOthers(chatId, senderId),
+  ]);
 
   return message;
 };
+
+export const markAsReadService = async ({ chatId, userId }) => {
+  if (!chatId) {
+    throw new ApiError(400, "ChatId is required");
+  }
+
+  return markConversationAsRead(chatId, userId);
+};
+

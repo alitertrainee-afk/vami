@@ -1,5 +1,5 @@
 // local imports
-import { sendMessageService } from "../service/message.service.js";
+import { sendMessageService, markAsReadService } from "../service/message.service.js";
 import { updateUserPresenceService } from "../service/user.service.js";
 import Conversation from "../models/Conversation.js";
 
@@ -104,6 +104,17 @@ const chatSocket = (io, socket) => {
       socket.emit("error", {
         message: error.message || "Message failed",
       });
+    }
+  });
+
+  // Mark conversation as read — resets unread count for this user
+  socket.on("mark_as_read", async (roomId) => {
+    if (!roomId) return;
+
+    try {
+      await markAsReadService({ chatId: roomId, userId });
+    } catch (error) {
+      console.error("Mark as read failed:", error.message);
     }
   });
 
