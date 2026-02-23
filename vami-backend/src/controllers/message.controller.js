@@ -4,7 +4,7 @@ import { sendResponse } from "../utils/responseHandler.js";
 import {
   getAllMessagesService,
   sendMessageService,
-} from "../service/message.service.js";
+} from "../services/message.service.js";
 
 export const allMessages = asyncHandler(async (req, res) => {
   const data = await getAllMessagesService(req.params.chatId, req.query);

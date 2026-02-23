@@ -35,16 +35,11 @@ export const registerUserService = async ({ username, email, password }) => {
         password,
     });
 
-    const createdUser = await findUserById(user._id);
-
-    if (!createdUser) {
-        throw new ApiError(500, "Failed to register user");
-    }
-
-    const tokens = generateTokenPair(createdUser._id);
+    // user.create returns the document without password (select: false in schema)
+    const tokens = generateTokenPair(user._id);
 
     return {
-        user: createdUser,
+        user,
         ...tokens,
     };
 };
@@ -54,21 +49,23 @@ export const loginUserService = async ({ email, username, password }) => {
         throw new ApiError(400, "Username or email is required");
     }
 
-    // Single query with password included (reduces 3 DB queries to 1)
-    const user = await findUserByEmailOrUsername({ email, username });
+    // Single DB query: find user with password field included
+    const user = await findUserByEmailOrUsername({ email, username }, "+password");
 
     if (!user) {
         throw new ApiError(404, "User does not exist");
     }
 
-    const userWithPassword = await findUserById(user._id, "+password");
-    const isPasswordValid = await userWithPassword.isPasswordCorrect(password);
+    const isPasswordValid = await user.isPasswordCorrect(password);
 
     if (!isPasswordValid) {
         throw new ApiError(401, "Invalid credentials");
     }
 
-    const safeUser = await findUserById(user._id);
+    // Strip password from the user object before returning
+    const safeUser = user.toObject();
+    delete safeUser.password;
+
     const tokens = generateTokenPair(safeUser._id);
 
     return {

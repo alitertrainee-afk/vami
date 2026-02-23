@@ -38,15 +38,14 @@ export const fetchChatsService = async (currentUserId) => {
   }
 
   return chats.map((chat) => {
-    const obj = chat.toObject ? chat.toObject() : { ...chat };
-    const meta = metadataMap.get(obj._id.toString());
+    const meta = metadataMap.get(chat._id.toString());
 
-    obj.unreadCount = meta?.unreadCount || 0;
-    obj.isPinned = meta?.isPinned || false;
-    obj.isArchived = meta?.isArchived || false;
-    obj.isMuted = meta?.isMuted || false;
+    chat.unreadCount = meta?.unreadCount || 0;
+    chat.isPinned = meta?.isPinned || false;
+    chat.isArchived = meta?.isArchived || false;
+    chat.isMuted = meta?.isMuted || false;
 
-    return obj;
+    return chat;
   });
 };
 

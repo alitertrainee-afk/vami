@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 
 // local imports
 import { ChatService } from "@/services/chat.service";
-import { socketClient } from "@/core/sockets/socket.client";
+import { socketClient } from "@/lib/socket.client";
 import { UserService } from "@/services/user.service"; // <-- Added for global user search
 import { useAuthStore } from "./auth.store"; // <-- Added to get current user ID for chat filtering
 

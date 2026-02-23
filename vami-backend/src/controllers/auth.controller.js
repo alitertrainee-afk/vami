@@ -5,7 +5,7 @@ import {
   registerUserService,
   loginUserService,
   refreshTokenService,
-} from "../service/auth.service.js";
+} from "../services/auth.service.js";
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,

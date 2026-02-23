@@ -1,6 +1,6 @@
 // local imports
-import { sendMessageService, markAsReadService } from "../service/message.service.js";
-import { updateUserPresenceService } from "../service/user.service.js";
+import { sendMessageService, markAsReadService } from "../services/message.service.js";
+import { updateUserPresenceService } from "../services/user.service.js";
 import Conversation from "../models/Conversation.js";
 
 /**

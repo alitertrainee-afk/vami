@@ -8,7 +8,7 @@ import {
   addMemberService,
   removeMemberService,
   renameGroupService,
-} from "../service/chat.service.js";
+} from "../services/chat.service.js";
 
 export const accessChat = asyncHandler(async (req, res) => {
   const chat = await accessChatService({

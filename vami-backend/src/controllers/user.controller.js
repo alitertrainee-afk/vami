@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/responseHandler.js";
-import { searchUsersService } from "../service/user.service.js";
+import { searchUsersService } from "../services/user.service.js";
 
 export const searchUsers = asyncHandler(async (req, res) => {
   const users = await searchUsersService({
