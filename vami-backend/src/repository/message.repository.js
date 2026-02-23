@@ -29,5 +29,6 @@ export const insertMessage = async ({ senderId, chatId, content }) => {
 export const updateConversationLatestMessage = async (chatId, messageId) => {
   return Conversation.findByIdAndUpdate(chatId, {
     latestMessage: messageId,
+    lastMessageAt: new Date(),
   });
 };

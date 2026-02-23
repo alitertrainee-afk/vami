@@ -31,6 +31,10 @@ const chatSocket = (io, socket) => {
   // User connected
   updatePresence(true);
 
+  // Auto-join a personal notification room keyed by userId
+  // This enables O(1) targeted notifications instead of O(n) fetchSockets()
+  socket.join(userId.toString());
+
   // 🔒 Authorized room join — verify user is a participant before joining
   socket.on("join_room", async (roomId) => {
     if (!roomId) return;
@@ -43,6 +47,12 @@ const chatSocket = (io, socket) => {
     }
 
     socket.join(roomId);
+  });
+
+  // Leave a chat room (called when switching conversations)
+  socket.on("leave_room", (roomId) => {
+    if (!roomId) return;
+    socket.leave(roomId);
   });
 
   socket.on("typing", (roomId) => {
@@ -81,22 +91,16 @@ const chatSocket = (io, socket) => {
       // Emit message to room (only joined participants receive this)
       io.to(roomId).emit("receive_message", message);
 
-      // Notify only conversation participants (not all connected users)
+      // Notify participants via their personal rooms (O(1) per participant)
       const participantIds = conversation.participants.map((p) => p.toString());
       for (const participantId of participantIds) {
         if (participantId === userId.toString()) continue; // skip sender
 
-        // Emit to all sockets belonging to this participant
-        const sockets = await io.fetchSockets();
-        for (const s of sockets) {
-          if (s.user?._id?.toString() === participantId) {
-            s.emit("new_message_notification", {
-              chatId: roomId,
-              message: message.content,
-              sender: socket.user.username,
-            });
-          }
-        }
+        io.to(participantId).emit("new_message_notification", {
+          chatId: roomId,
+          message: message.content,
+          sender: socket.user.username,
+        });
       }
     } catch (error) {
       socket.emit("error", {

@@ -43,6 +43,11 @@ class SocketClient {
     this.socket.on(event, callback);
   }
 
+  off(event) {
+    if (!this.socket) return;
+    this.socket.off(event);
+  }
+
   emit(event, data) {
     if (!this.socket) {
       console.warn("[Socket] Attempted to emit without connection");

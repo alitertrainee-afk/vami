@@ -27,11 +27,7 @@ export function useChatScroll({ messages, hasNext, loadMore }) {
       const previousHeight = container.scrollHeight;
 
       // Trigger the parent's loadMore function
-      const loaded = await loadMore();
-      if (!loaded) {
-        isFetchingMore.value = false;
-        return;
-      }
+      await loadMore();
 
       await nextTick();
       await new Promise((resolve) => requestAnimationFrame(resolve));

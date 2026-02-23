@@ -120,10 +120,16 @@ export const useChatStore = defineStore("chat", {
     },
 
     async setActiveChat(chat) {
+      // Leave previous room to prevent room accumulation
+      if (this.activeChat) {
+        socketClient.emit("leave_room", this.activeChat._id);
+      }
+
       this.activeChat = chat;
       this.messages = [];
       this.currentPage = 1;
       this.pagination = null;
+      this.typingUsers = new Set();
 
       if (!chat) return;
 
@@ -216,6 +222,18 @@ export const useChatStore = defineStore("chat", {
         this.updateSidebarLatestMessage(message?.conversation, message);
       });
 
+      // Sidebar unread count bump for background chats
+      socketClient.on("new_message_notification", ({ chatId }) => {
+        // Skip if already viewing this chat
+        if (this.activeChat?._id === chatId) return;
+
+        const idx = this.conversations.findIndex((c) => c._id === chatId);
+        if (idx !== -1) {
+          this.conversations[idx].unreadCount =
+            (this.conversations[idx].unreadCount || 0) + 1;
+        }
+      });
+
       // Listen for presence
       socketClient.on("user_status_update", ({ userId, isOnline }) => {
         if (isOnline) {
@@ -224,9 +242,26 @@ export const useChatStore = defineStore("chat", {
           this.onlineUsers.delete(userId);
         }
       });
+
+      // Typing indicators
+      socketClient.on("user_typing", ({ userId, roomId }) => {
+        if (this.activeChat?._id === roomId) {
+          this.typingUsers.add(userId);
+        }
+      });
+
+      socketClient.on("user_stopped_typing", ({ userId }) => {
+        this.typingUsers.delete(userId);
+      });
     },
 
     disconnectSocket() {
+      // Clean up all listeners before disconnecting to prevent memory leaks
+      socketClient.off("receive_message");
+      socketClient.off("new_message_notification");
+      socketClient.off("user_status_update");
+      socketClient.off("user_typing");
+      socketClient.off("user_stopped_typing");
       socketClient.disconnect();
     },
 

@@ -92,10 +92,7 @@ export const useAuthStore = defineStore("auth", {
       removeLocalStorageItem("vami_user");
     },
 
-    /**
-     * Attempt to refresh the access token using the HttpOnly refresh cookie.
-     * Called by the response interceptor on 401.
-     */
+
     async refreshAccessToken() {
       try {
         const response = await AuthService.refresh();

@@ -14,7 +14,13 @@ const authStore = useAuthStore();
 
 defineEmits(["back", "toggle-info"]);
 
-// ... (Action handlers remain the same)
+const handleLoadMore = () => {
+  return chatStore.loadMoreMessages();
+};
+
+const handleSend = (content) => {
+  chatStore.sendMessage(content);
+};
 </script>
 
 <template>

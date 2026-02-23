@@ -1,4 +1,4 @@
-// local imports
+// local stores
 import { useAuthStore } from "../../store/auth.store.js";
 
 let isRefreshing = false;
@@ -31,7 +31,7 @@ export const setupResponseInterceptor = (axiosInstance) => {
       const message = data?.message || "An error occurred";
 
       // Skip refresh for the refresh endpoint itself (prevents infinite loop)
-      if (status === 401 && !originalRequest._retry && !originalRequest.url?.includes("/auth/refresh")) {
+      if (status === 401 && !originalRequest?._retry && !originalRequest.url?.includes("/auth/refresh")) {
         if (isRefreshing) {
           // Queue this request while a refresh is in progress
           return new Promise((resolve, reject) => {

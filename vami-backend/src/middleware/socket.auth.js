@@ -21,7 +21,6 @@ const socketAuth = async (socket, next) => {
 
     // Try cache first, fall back to DB
     const cacheKey = CACHE_KEYS.user(decoded?.id);
-    console.log("🚀 ~ socketAuth ~ cacheKey:", cacheKey)
     let user = await cacheGet(cacheKey);
 
     if (!user) {
