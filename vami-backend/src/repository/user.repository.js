@@ -24,8 +24,10 @@ export const searchUsers = async ({ keyword, excludeUserId, limit = 10 }) => {
     .limit(limit);
 };
 
-
-export const findUserByEmailOrUsername = async ({ email, username }, select) => {
+export const findUserByEmailOrUsername = async (
+  { email, username },
+  select,
+) => {
   const query = User.findOne({
     $or: [{ email }, { username }],
   });
@@ -52,4 +54,11 @@ export const updateUserPresence = async ({ userId, isOnline }) => {
     },
     { new: true },
   );
+};
+
+export const updateUserProfile = async (userId, updates) => {
+  return User.findByIdAndUpdate(userId, updates, {
+    new: true,
+    runValidators: true,
+  }).select("-password");
 };
