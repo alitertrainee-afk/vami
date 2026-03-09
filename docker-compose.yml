@@ -1,39 +1,94 @@
 version: '3.8'
 services:
-  # The Scalability Layer
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
 
-  # The Database
+  # -----------------------------------------------------------------------
+  # MongoDB — single-node replica set.
+  # Using a replica set (even with 1 node) enables the oplog, change streams,
+  # and transactions required by future features. Scale to 3 nodes on Atlas
+  # or a managed cluster for production.
+  # -----------------------------------------------------------------------
   mongo:
-    image: mongo
+    image: mongo:6.0
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:-changeme}
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # The Backend (Scaled to 2 instances)
+  # One-shot container that initialises the replica set on first boot
+  mongo-init:
+    image: mongo:6.0
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    command: >
+      mongosh --host mongo:27017
+        -u ${MONGO_ROOT_USER:-admin} -p ${MONGO_ROOT_PASS:-changeme}
+        --authenticationDatabase admin
+        --eval '
+          try {
+            rs.status();
+            print("Replica set already initialised");
+          } catch(e) {
+            rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "mongo:27017" }] });
+            print("Replica set initialised");
+          }
+        '
+
+  # -----------------------------------------------------------------------
+  # Redis — The Scalability Layer (pub/sub + cache + rate-limit counters)
+  # -----------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # -----------------------------------------------------------------------
+  # Backend API (scaled to N replicas)
+  # -----------------------------------------------------------------------
   api:
     build: ./vami-backend
     deploy:
       replicas: 2
     environment:
       - PORT=3000
+      - NODE_ENV=production
       - REDIS_URL=redis://redis:6379
-      - MONGO_URI=mongodb://mongo:27017/vami
+      - MONGO_URI=mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS:-changeme}@mongo:27017/vami?authSource=admin&replicaSet=rs0
     depends_on:
-      - redis
-      - mongo
+      mongo:
+        condition: service_healthy
+      mongo-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
-  # The Load Balancer
+  # -----------------------------------------------------------------------
+  # Nginx — Load Balancer (least_conn, no sticky sessions needed)
+  # -----------------------------------------------------------------------
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api
 
 volumes:
   mongo-data:
+  redis-data:

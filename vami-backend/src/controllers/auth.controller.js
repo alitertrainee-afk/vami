@@ -7,6 +7,9 @@ import {
   registerUserService,
   loginUserService,
   refreshTokenService,
+  logoutService,
+  verifyEmailService,
+  resendVerificationService,
 } from "../services/auth.service.js";
 
 
@@ -57,6 +60,11 @@ export const refreshToken = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
+  const token = req.cookies?.refreshToken;
+
+  // Blacklist the refresh token JTI so it cannot be reused after logout
+  await logoutService(token);
+
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -65,4 +73,23 @@ export const logoutUser = asyncHandler(async (req, res) => {
   });
 
   return sendResponse(res, 200, "Logged out successfully");
+});
+
+/**
+ * GET /auth/verify-email?token=<token>
+ * Verifies the user's email address using the signed token from the email link.
+ */
+export const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.query;
+  const user = await verifyEmailService(token);
+  return sendResponse(res, 200, "Email verified successfully", { user });
+});
+
+/**
+ * POST /auth/resend-verification
+ * Protected — requires a valid access token. Re-sends the verification email.
+ */
+export const resendVerification = asyncHandler(async (req, res) => {
+  const result = await resendVerificationService(req.user._id);
+  return sendResponse(res, 200, result.message);
 });

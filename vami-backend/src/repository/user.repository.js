@@ -62,3 +62,50 @@ export const updateUserProfile = async (userId, updates) => {
     runValidators: true,
   }).select("-password");
 };
+
+/** Mark the user's email as verified. */
+export const verifyUserEmail = async (userId) => {
+  return User.findByIdAndUpdate(
+    userId,
+    { emailVerified: true },
+    { new: true },
+  ).select("-password");
+};
+
+// -----------------------------------------------------------------------
+// Phase 4 — Block / unblock
+// -----------------------------------------------------------------------
+
+/** Add targetId to userId's blockedUsers list. */
+export const blockUser = async (userId, targetId) => {
+  return User.findByIdAndUpdate(
+    userId,
+    { $addToSet: { blockedUsers: targetId } },
+    { new: true },
+  ).select("blockedUsers");
+};
+
+/** Remove targetId from userId's blockedUsers list. */
+export const unblockUser = async (userId, targetId) => {
+  return User.findByIdAndUpdate(
+    userId,
+    { $pull: { blockedUsers: targetId } },
+    { new: true },
+  ).select("blockedUsers");
+};
+
+/** Return the populated list of users blocked by userId. */
+export const findBlockedUsers = async (userId) => {
+  return User.findById(userId)
+    .select("blockedUsers")
+    .populate("blockedUsers", "username email profile.avatar");
+};
+
+/** Return true if targetId is in userId's blockedUsers list. */
+export const isBlockedByUser = async (userId, targetId) => {
+  const user = await User.findById(userId).select("blockedUsers").lean();
+  return (
+    user?.blockedUsers?.some((id) => id.toString() === targetId.toString()) ??
+    false
+  );
+};

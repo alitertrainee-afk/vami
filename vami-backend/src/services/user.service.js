@@ -8,6 +8,10 @@ import {
   findUserById,
   findUserByEmailOrUsername,
   updateUserProfile,
+  blockUser,
+  unblockUser,
+  findBlockedUsers,
+  isBlockedByUser,
 } from "../repository/user.repository.js";
 
 export const searchUsersService = async ({ search, currentUserId }) => {
@@ -84,4 +88,35 @@ export const changePasswordService = async (
   await user.save();
 
   return { message: "Password changed successfully" };
+};
+
+// ---------------------------------------------------------------------------
+// Phase 4 — Block / Unblock
+// ---------------------------------------------------------------------------
+
+export const blockUserService = async ({ currentUserId, targetUserId }) => {
+  if (currentUserId.toString() === targetUserId.toString())
+    throw new ApiError(400, "You cannot block yourself");
+
+  const target = await findUserById(targetUserId);
+  if (!target) throw new ApiError(404, "User not found");
+
+  const alreadyBlocked = await isBlockedByUser(currentUserId, targetUserId);
+  if (alreadyBlocked) throw new ApiError(400, "User is already blocked");
+
+  await blockUser(currentUserId, targetUserId);
+  return { message: "User blocked successfully" };
+};
+
+export const unblockUserService = async ({ currentUserId, targetUserId }) => {
+  const blocked = await isBlockedByUser(currentUserId, targetUserId);
+  if (!blocked) throw new ApiError(400, "User is not blocked");
+
+  await unblockUser(currentUserId, targetUserId);
+  return { message: "User unblocked successfully" };
+};
+
+export const getBlockedUsersService = async (userId) => {
+  const result = await findBlockedUsers(userId);
+  return result?.blockedUsers ?? [];
 };

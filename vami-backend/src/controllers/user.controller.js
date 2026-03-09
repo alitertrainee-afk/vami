@@ -8,6 +8,9 @@ import {
   getProfileService,
   updateProfileService,
   changePasswordService,
+  blockUserService,
+  unblockUserService,
+  getBlockedUsersService,
 } from "../services/user.service.js";
 
 export const searchUsers = asyncHandler(async (req, res) => {
@@ -37,4 +40,29 @@ export const changePassword = asyncHandler(async (req, res) => {
     newPassword,
   );
   return sendResponse(res, 200, result.message);
+});
+
+// ---------------------------------------------------------------------------
+// Phase 4 — Block / Unblock
+// ---------------------------------------------------------------------------
+
+export const blockUser = asyncHandler(async (req, res) => {
+  const result = await blockUserService({
+    currentUserId: req.user._id,
+    targetUserId: req.params.userId,
+  });
+  return sendResponse(res, 200, result.message);
+});
+
+export const unblockUser = asyncHandler(async (req, res) => {
+  const result = await unblockUserService({
+    currentUserId: req.user._id,
+    targetUserId: req.params.userId,
+  });
+  return sendResponse(res, 200, result.message);
+});
+
+export const getBlockedUsers = asyncHandler(async (req, res) => {
+  const users = await getBlockedUsersService(req.user._id);
+  return sendResponse(res, 200, "Blocked users fetched", users);
 });

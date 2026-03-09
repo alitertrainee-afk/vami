@@ -16,6 +16,9 @@ import socketAuth from "./src/middleware/socket.auth.js";
 // local sockets
 import chatSocket from "./src/sockets/chat.socket.js";
 
+// real-time emitter singleton
+import { initSocketEmitter } from "./src/utils/socketEmitter.js";
+
 // Create HTTP Server
 const server = http.createServer(app);
 
@@ -33,6 +36,9 @@ const startServer = async () => {
       },
       adapter: createAdapter(pubClient, subClient),
     });
+
+    // Make io available throughout the application (controllers, services)
+    initSocketEmitter(io);
 
     io.use(socketAuth);
 

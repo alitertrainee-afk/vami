@@ -7,6 +7,9 @@ import {
   getProfile,
   updateProfile,
   changePassword,
+  blockUser,
+  unblockUser,
+  getBlockedUsers,
 } from "../controllers/user.controller.js";
 
 // local middleware
@@ -30,6 +33,13 @@ router.patch(
   validate(changePasswordSchema),
   changePassword,
 );
+
+// Block list
+router.get("/me/blocked", protect, getBlockedUsers);
+
+// Block / unblock another user
+router.post("/:userId/block", protect, blockUser);
+router.delete("/:userId/block", protect, unblockUser);
 
 // Search
 router.get("/", protect, searchUsers);

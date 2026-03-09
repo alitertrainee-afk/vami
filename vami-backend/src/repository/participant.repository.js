@@ -75,3 +75,23 @@ export const removeParticipant = async (conversationId, userId) => {
         user: userId,
     });
 };
+
+// -----------------------------------------------------------------------
+// Phase 4 — Conversation settings (pin, archive, mute)
+// -----------------------------------------------------------------------
+
+/** Update per-user conversation preferences. */
+export const updateParticipantSettings = async (conversationId, userId, settings) => {
+  return ConversationParticipant.findOneAndUpdate(
+    { conversation: conversationId, user: userId },
+    { $set: settings },
+    { new: true },
+  );
+};
+
+/** Return all participant records for a conversation, with user info. */
+export const findParticipantsByConversation = async (conversationId) => {
+  return ConversationParticipant.find({ conversation: conversationId })
+    .populate("user", "username email profile.avatar isOnline lastSeen")
+    .lean();
+};

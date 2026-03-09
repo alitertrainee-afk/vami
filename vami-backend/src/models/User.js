@@ -10,7 +10,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       minlength: 3,
-      index: true,
     },
     email: {
       type: String,
@@ -18,7 +17,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     password: {
       type: String,
@@ -65,6 +63,11 @@ const userSchema = new mongoose.Schema(
       notifications: { type: Boolean, default: true },
     },
     emailVerified: { type: Boolean, default: false },
+
+    // ------------------------------------------------------------------
+    // Phase 4 — Block list
+    // ------------------------------------------------------------------
+    blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,

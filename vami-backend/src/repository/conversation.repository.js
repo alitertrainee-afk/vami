@@ -66,6 +66,7 @@ export const createGroupChat = async ({ chatName, participants, adminId }) => {
     isGroupChat: true,
     participants,
     groupAdmin: adminId,
+    admins: [adminId],
   });
 
   await createParticipants(chat._id, participants);
@@ -107,4 +108,84 @@ export const renameGroupChat = async (chatId, chatName) => {
   )
     .populate("participants", "username email profile.avatar isOnline")
     .populate("groupAdmin", "username email profile.avatar");
+};
+
+// -----------------------------------------------------------------------
+// Phase 4 — Multi-admin, group info, invite links
+// -----------------------------------------------------------------------
+
+const GROUP_POPULATE = [
+  { path: "participants", select: "username email profile.avatar isOnline" },
+  { path: "groupAdmin",   select: "username email profile.avatar" },
+  { path: "admins",       select: "username email profile.avatar" },
+];
+
+/** Update group metadata (name, description, groupAvatar). */
+export const updateGroupInfo = async (chatId, updates) => {
+  return Conversation.findByIdAndUpdate(chatId, { $set: updates }, { new: true })
+    .populate(GROUP_POPULATE);
+};
+
+/** Add a user to the admins array. */
+export const promoteToAdmin = async (chatId, userId) => {
+  return Conversation.findByIdAndUpdate(
+    chatId,
+    { $addToSet: { admins: userId } },
+    { new: true },
+  ).populate(GROUP_POPULATE);
+};
+
+/** Remove a user from the admins array. */
+export const demoteFromAdmin = async (chatId, userId) => {
+  return Conversation.findByIdAndUpdate(
+    chatId,
+    { $pull: { admins: userId } },
+    { new: true },
+  ).populate(GROUP_POPULATE);
+};
+
+/** Pull a user from both participants and admins arrays. */
+export const leaveGroupConversation = async (chatId, userId) => {
+  return Conversation.findByIdAndUpdate(
+    chatId,
+    { $pull: { participants: userId, admins: userId } },
+    { new: true },
+  ).populate(GROUP_POPULATE);
+};
+
+/** Set (or clear) the invite token for a group. */
+export const setInviteToken = async (chatId, token) => {
+  return Conversation.findByIdAndUpdate(
+    chatId,
+    { inviteToken: token },
+    { new: true },
+  );
+};
+
+/** Find a conversation by its invite token. */
+export const findByInviteToken = async (token) => {
+  return Conversation.findOne({ inviteToken: token }).populate(GROUP_POPULATE);
+};
+
+/** Update group-level messaging settings (e.g. onlyAdminsCanMessage). */
+export const updateGroupSettings = async (chatId, settings) => {
+  return Conversation.findByIdAndUpdate(chatId, { $set: settings }, { new: true })
+    .populate(GROUP_POPULATE);
+};
+
+/** Auto-promote the oldest non-admin participant (used when last admin leaves). */
+export const promoteOldestParticipant = async (chatId, excludeUserId) => {
+  const chat = await Conversation.findById(chatId).lean();
+  if (!chat) return null;
+
+  const candidate = chat.participants.find(
+    (p) => p.toString() !== excludeUserId.toString(),
+  );
+  if (!candidate) return null;
+
+  return Conversation.findByIdAndUpdate(
+    chatId,
+    { $addToSet: { admins: candidate } },
+    { new: true },
+  );
 };
